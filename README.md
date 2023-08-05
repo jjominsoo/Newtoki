@@ -16,12 +16,18 @@ Newtoki crawling and recommendation
 - - -
 > 8월4일
 >
-1. 파이썬 환경변수 설정과 패키지 설치
-* pip install 
-?? 셀레니움 참조가 안됨
-2. 파이참 인터프리터 설정
+#### 1. 파이썬 환경변수 설정과 패키지 설치
+* pip install --update pip
+* pip install (--update) selenium
+* pip install (--update) webdriver_manager
 
-내 컴퓨터에 설치된 패키지들은 파이참의 인터프리터는 인식하지 못하므로 내 컴퓨터에 있는 인터프리터를 사용해야한다.
+?? 셀레니움 참조가 안됨
+
+#### 2. 파이참 인터프리터 설정
+* File > Settings > 톱니바퀴 Add > System Interpreter > 컴퓨터에 설치된 파이썬.exe 경로
+
+<img src="./system_interpreter.png"></img>
+###### why? 내 컴퓨터에 설치된 패키지들은 파이참의 인터프리터는 인식하지 못하므로 내 컴퓨터에 있는 인터프리터를 사용해야한다.
 
 - - -
 > 8월 5일
