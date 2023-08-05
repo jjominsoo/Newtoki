@@ -33,3 +33,16 @@ Newtoki crawling and recommendation
 #### 1. github readme 작성
 어제 몫까지 작성
 
+#### 2. git 업로드
+노트북으로 작업했기 때문에 데스크탑에 옮기기 위해서 git을 사용
+> 노트북
+>> cd (작업한폴더 : ~\NewtokkiCrawling)
+>>
+>> git init
+>>
+>> git add *
+>>
+>> git commit
+>>
+>> git remote add origin 
+
