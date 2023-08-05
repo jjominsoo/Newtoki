@@ -38,11 +38,21 @@ Newtoki crawling and recommendation
 > 노트북
 >> cd (작업한폴더 : ~\NewtokkiCrawling)
 >>
+>> git config --global user.email jjominsoo987@naver.com
+>>
+>> git config --global user.name jjominsoo
+>> 
 >> git init
 >>
 >> git add *
 >>
->> git commit
+>> git commit -m "message"
 >>
->> git remote add origin 
+>> git remote add origin https://github.com/jjominsoo/Newtoki.git
+>>
+>> git push origin master
 
+> 데스크탑
+>> git bash 실행
+>>
+>> git clone https://github.com/jjominsoo/Newtoki.git
