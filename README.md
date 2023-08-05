@@ -34,25 +34,7 @@ Newtoki crawling and recommendation
 어제 몫까지 작성
 
 #### 2. git 업로드
-노트북으로 작업했기 때문에 데스크탑에 옮기기 위해서 git을 사용
-> 노트북
->> cd (작업한폴더 : ~\NewtokkiCrawling)
->> 
->> git config --global user.email jjominsoo987@naver.com
->>
->> git config --global user.name jjominsoo
->> 
->> git init
->>
->> git add *
->>
->> git commit -m "message"
->>
->> git remote add origin https://github.com/jjominsoo/Newtoki.git .. origin이라는 이름으로 저장하겠다는것
->> 
->> git push origin master .. master란 브랜치에 저장하겠다는것
+git 문법을 까먹어서 다시 공부
 
-> 데스크탑
->> git bash 실행
->>
->> git clone https://github.com/jjominsoo/Newtoki.git
+- - -
+
