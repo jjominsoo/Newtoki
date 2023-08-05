@@ -1,0 +1,51 @@
+git init으로 해당 폴더를 사용한다. (master 브랜치 생성)
+git add / commit 으로 현재 폴더에 있는 파일들을 임시저장소에 저장한다.
+
+( git remote add origin ~.git주소 // 해당 .git주소(깃허브웹)를 origin이라는 이름인 원격저장소로 취급하겠다. )
+( git remote -v // 현재 연결되어있는 원격저장소 확인 )
+
+git push origin +master
+
+원격 저장소의 브랜치 != 현재 임시저장소의 브랜치
+
+git clone 이 중요 
+그래야 연결된다는 느낌
+만약 안했고 내가 컴퓨터에서 한걸 그대로 보내버리고 싶다(덮어쓰기)
+git push origin +master
+
+git branch
+
+원격저장소(웹)과 로컬저장소(컴퓨터)의 통일성이 중요
+
+0. 애초에 웹에서 레파지토리를 생성한 후 그것을 git clone하여 가져오고 거기다가 작업을 진행하는게 최고
+그럼 remote 설정이나 그런거 안해도 된다.
+
+( git bash 를 사용할거다 )
+1.  git clone을 쓰면 현재 경로에 '웹'의 레파지토리 이름의 폴더가 생성된다
+cd를 사용해 폴더 안으로 들어가면 main 브랜치의 내용이 있을 것이다. ( 보통 readme.md )
+이제 이 폴더 내에서 모든 작업을 하면 된다.
+가급적이면 readme파일은 맨 밖으로 빼고 진행하자.
+
+2. 만약 다른 진행중인 작업이 있고 그걸 업로드 하고 싶다
+작업 폴더 경로로 들어가 git init을 한다. 그럼 그 폴더가 master 브랜치의 폴더가 된다
+이 때 clone과는 다르게 remote 설정을 해야한다. git remote add origin(설정가능) 원격저장소(웹)주소
+그럼 origin이란 이름으로 원격저장소(웹)를 다루겠다라는 뜻이 된다 == 변수설정이랑 마찬가지 
+git remote -v로 연결된 주소를 확인할 수 있다.
+그 후 git push origin master == 로컬저장소(컴퓨터)에서 master이름의 브랜치 내용을 원격저장소(웹)에서 master이름의 브랜치에 넣겠다는 뜻
+즉 중요한건 로컬에 있는 브랜치와 원격저장소에 있는 브랜치가 같아야한다. ( master == master )
+로컬에서 브랜치 추가는 git branch 브랜치이름 이고 
+원격에서 브랜치 추가는 push할때 끝에 브랜치 이름을 붙이면 된다. git push origin 브랜치이름
+git branch -r로 연결된 브랜치를 확인할 수 있다.
+
+3. 만약 다른 컴퓨터에서 진행하고 싶어 파일을 받고 싶다면 git pull을 이용한다. 
+마찬가지로 로컬저장소의 브랜치와 가지고 올 원격저장소의 브랜치가 같아야한다.
+git pull origin master
+
++위 내용은 거의 혼자할때고 이제 협업하는 단계로 가면 clone이 아닌 fork로 진행한다.
+ git pull 
+
+
+git status
+git branch -r
+git checkout 브랜치명
+
