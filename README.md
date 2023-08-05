@@ -37,7 +37,7 @@ Newtoki crawling and recommendation
 노트북으로 작업했기 때문에 데스크탑에 옮기기 위해서 git을 사용
 > 노트북
 >> cd (작업한폴더 : ~\NewtokkiCrawling)
->>
+>> 
 >> git config --global user.email jjominsoo987@naver.com
 >>
 >> git config --global user.name jjominsoo
@@ -48,9 +48,9 @@ Newtoki crawling and recommendation
 >>
 >> git commit -m "message"
 >>
->> git remote add origin https://github.com/jjominsoo/Newtoki.git
->>
->> git push origin master
+>> git remote add origin https://github.com/jjominsoo/Newtoki.git .. origin이라는 이름으로 저장하겠다는것
+>> 
+>> git push origin master .. master란 브랜치에 저장하겠다는것
 
 > 데스크탑
 >> git bash 실행
