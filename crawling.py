@@ -45,7 +45,6 @@ print(infos)
 
 
 
-
 ###
 ### 로그인은 굳이 할 필요가 없을 것 같고, 캡챠입력은 수동으로 받도록 하자.
 ### https://www.youtube.com/watch?v=ZNOiwvrS_dc
