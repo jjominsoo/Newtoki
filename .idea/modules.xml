@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/NewtokkiCrawling.iml" filepath="$PROJECT_DIR$/.idea/NewtokkiCrawling.iml" />
-=======
-      <module fileurl="file://$PROJECT_DIR$/.idea/Newtoki.iml" filepath="$PROJECT_DIR$/.idea/Newtoki.iml" />
->>>>>>> 8d6b8f11a38d05610f32f149787d413cf1bf0578
     </modules>
   </component>
 </project>
