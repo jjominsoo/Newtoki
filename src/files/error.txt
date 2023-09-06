@@ -1,0 +1,19 @@
+selenium.common.exceptions.ElementClickInterceptedException: Message: element click intercepted: Element <span class="btn btn-default btn-xs s-yoil" data-value="...">목</span> is not clickable at point (199, 11). Other element would receive the click: <img src="https://newtoki306.com/img/logo-full_newtoki.png">
+  (Session info: chrome=116.0.5845.141)
+
+  https://newtoki306.com/webtoon/30946985/%EA%B7%B8%EC%A0%80-%EC%97%AC%EB%AA%85%EC%9D%BC-%EB%BF%90?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+
+캡차 전 주소
+https://newtoki306.com/bbs/captcha.php?bo_table=webtoon&wr_id=30946985&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+캡차 후 주소
+https://newtoki306.com/webtoon/30946985?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+저장된 주소
+https://newtoki306.com/webtoon/30946985/%EA%B7%B8%EC%A0%80-%EC%97%AC%EB%AA%85%EC%9D%BC-%EB%BF%90?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+
+드라이버 현재 주소
+https://newtoki306.com/webtoon/30946985?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+에러)
+UnicodeDecodeError: 'utf-8' codec can't decode byte 0x9d in position 79: invalid start byte
+
+수정한 주소
+https%3A//newtoki306.com/webtoon/30946985%3Ftoon%3D%25EC%259D%25BC%25EB%25B0%2598%25EC%259B%25B9%25ED%2588%25B0

@@ -5,7 +5,7 @@ from datetime import datetime
 wb = openpyxl.Workbook()
 info = wb.create_sheet('Site Information')
 info['A1'] = 'URL'
-info['A2'] = "https://newtoki302.com"
+info['A2'] = "https://newtoki306.com"
 info['B1'] = 'Last Update'
 info['B2'] = datetime.now()
 info['C1'] = 'Update List'
@@ -34,5 +34,6 @@ week['R1'] = '중국'
 week['S1'] = '요일'
 week['T1'] = '1화링크'
 week['U1'] = '최신화링크'
+week['V1'] = '상세페이지 URL'
 
 wb.save(r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki.xlsx')
