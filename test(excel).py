@@ -106,20 +106,32 @@ from datetime import datetime, timedelta
 
 import os
 from openpyxl.drawing.image import Image
+from openpyxl import Workbook
 
-fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\test.xlsx'
+fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki3.xlsx'
 wb = openpyxl.load_workbook(fpath)
 wb_siteInfo = wb['Site Information']
 wb_webtoon = wb['webtoon']
 
-img_dir = 'src/img'
-img_file_list = os.listdir(img_dir)
+img_dir = 'src/img/'
+no_img_dir = 'src/files/'
+img_file_list = sorted(os.listdir(img_dir),key=lambda x:int(x.split('.')[0]))
+
 
 for i, img_file in enumerate(img_file_list):
-    image_path = os.path.join(img_dir,img_file)
-    image = Image(image_path)
-    wb_webtoon.add_image(image, anchor='B'+str(i+2))
+    try:
+        image_path = os.path.join(img_dir, img_file)
+        image = Image(image_path)
+        wb_webtoon.add_image(image, anchor='B' + str(i + 2))
+    except Exception as e:
+        print(e)
+        image_path = os.path.join(no_img_dir, 'no_image.png')
+        image = Image(image_path)
+        wb_webtoon.add_image(image, anchor='B' + str(i + 2))
 
+    if i == 0:
+        wb_webtoon.column_dimensions['B'].width = image.width*63.2/504.19
+    wb_webtoon.row_dimensions[i+2].height = image.height*225.35/298.96
 
 wb.save(fpath)
 

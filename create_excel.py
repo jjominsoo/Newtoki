@@ -33,7 +33,6 @@ week['Q1'] = '한국'
 week['R1'] = '중국'
 week['S1'] = '요일'
 week['T1'] = '1화링크'
-week['U1'] = '최신화링크'
-week['V1'] = '상세페이지 URL'
+week['U1'] = '상세페이지 URL'
 
 wb.save(r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki.xlsx')

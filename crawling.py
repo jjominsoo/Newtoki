@@ -22,6 +22,7 @@ user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 chrome_options = Options()
 chrome_options.add_experimental_option("detach",True)
 chrome_options.add_experimental_option("excludeSwitches",["enable-logging"])
+# chrome_options.headless = True
 chrome_options.add_argument('user-agent=' + user_agent)
 service = Service(executable_path=ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -29,7 +30,7 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 # driver.implicitly_wait(5)
 
 # 엑셀파일에 저장된 최근에 접속가능했던 주소를 가져와서 진행한다.
-fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki2.xlsx'
+fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki.xlsx'
 wb = openpyxl.load_workbook(fpath)
 wb_siteInfo = wb['Site Information']
 wb_webtoon = wb['webtoon']
@@ -59,35 +60,28 @@ def first_page(url,w):
         #!! 핫스팟으론 되는데 집 와이파이로는 되긴 됐지만 일요일-열흘 이 부분이 안됐다.
         #!! 다시 한번 해봐야 알듯
         #!! https://newtoki306.com/webtoon?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
-        while (1):
+        for i in range(1000):
             try:
-                time.sleep(1)
                 url2 = url + temp
-                time.sleep(1)
-                url3 = 'https://www.naver.com'
+                # url3 = 'https://www.naver.com'
                 driver.get(url2)
-                # time.sleep(3)
-                a = input()
+                time.sleep(2)
                 driver.implicitly_wait(10)
-                # [월]이란 버튼 클릭
                 driver.find_element(By.XPATH,
                                     '//*[@id="content_wrapper"]/div[2]/div/section/div[1]/form/table/tbody/tr[2]/td/span[2]').click()
                 driver.find_element(By.XPATH,
                                     '//*[@id="content_wrapper"]/div[2]/div/section/div[1]/form/table/tbody/tr[1]/td[2]/button').send_keys(
                     Keys.ENTER)
                 break
-            except Exception as error:
-                a = input()
-
-                print(error)
+            except Exception as e:
+                # a = input()
                 time.sleep(1)
                 num = int(re.sub(r'[^0-9]', '', url)) + 1
-                #!! 여기 좀 수정해야할듯??
+                # !! 여기 좀 수정해야할듯??
                 url = "https://newtoki" + str(num) + ".com"
-                # print(num)
-
         accessing_page_e_time = time.time()
         print("첫 웹사이트 접속 시간 : " + str(accessing_page_e_time - accessing_page_s_time))
+
     else:
         other_day_click_s_time = time.time()
         driver.implicitly_wait(5)
@@ -143,11 +137,17 @@ def page_crawl(update_num,week_num,p):
 
     # 이미지 저장
     single_toon_img_s_time = time.time()
-    for image, name in zip(images,names):
-        new_name = re.sub(r"[^\uAC00-\uD7A30-9a-zA-Z\s]","",name.text)
+    # for image, name in zip(images,names):
+    #     new_name = re.sub(r"[^\uAC00-\uD7A30-9a-zA-Z\s]","",name.text)
+    #     temp = requests.get(image.get_attribute('src'))
+    #     with open(f'src/img/{update_num}.png', "wb") as outfile:
+    #         outfile.write(temp.content)
+
+    for i, image in enumerate(images):
         temp = requests.get(image.get_attribute('src'))
-        with open(f'src/img/{new_name}.png', "wb") as outfile:
+        with open(f'src/img/{i+update_num-2}.png', "wb") as outfile:
             outfile.write(temp.content)
+            # print('image saved')
     single_toon_img_e_time = time.time()
 
     # 이름, 장르, 요일, 상세페이지 url 저장
@@ -175,10 +175,10 @@ def page_crawl(update_num,week_num,p):
         wb_webtoon['S%d' % update_num] = webtoon['data-weekday']
         single_toon_day_e_time = time.time()
 
-        # wb_webtoon[V2]에 저장
+        # wb_webtoon[U2]에 저장
         single_toon_url_s_time = time.time()
         detail_url = detail_pages[i].find_element(By.TAG_NAME, 'a').get_attribute('href')
-        wb_webtoon['V%d'%update_num] = detail_url
+        wb_webtoon['U%d'%update_num] = detail_url
         single_toon_url_e_time = time.time()
 
         update_num += 1
@@ -196,9 +196,9 @@ def page_crawl(update_num,week_num,p):
 
     return update_num
 
-
 def detail_page(i):
-    detail_url = wb_webtoon['V%d'%i+2].value
+    a_s_time = time.time()
+    detail_url = wb_webtoon['U' + str(int(i) + 2)].value
     driver.get(detail_url)
     if i == 0:
         captcha_num = pyautogui.prompt("Captcha 입력 >> ")
@@ -208,13 +208,27 @@ def detail_page(i):
                             '//*[@id="content_wrapper"]/div[2]/div/div[2]/div/div/div[2]/form/div[3]/div[2]/button').send_keys(
             Keys.ENTER)
     driver.implicitly_wait(5)
+    a_e_time = time.time()
+
     # 총 회차수
-    total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').text
-    print(total_num[0])
+    # wb_webtoon[E2]
+    b_s_time = time.time()
+    total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
+    wb_webtoon['E' + str(int(i) + 2)] = total_num
+    # print(total_num[0])
+    b_e_time = time.time()
+
     # 추천수
+    # wb_webtoon[C2]
+    c_s_time = time.time()
     recommend_num = driver.find_element(By.ID, 'wr_good').text
-    print(recommend_num)
+    wb_webtoon['C' + str(int(i) + 2)] = recommend_num
+    # print(recommend_num)
+    c_e_time = time.time()
+
     # 별점
+    # wb_webtoon[D2]
+    d_s_time = time.time()
     stars = driver.find_elements(By.CSS_SELECTOR, 'button.btn-white > i')
     star_point = 0
     for star in stars:
@@ -224,9 +238,33 @@ def detail_page(i):
             star_point += 0.5
         else:
             continue
+    wb_webtoon['D' + str(int(i) + 2)] = star_point
+    # print(star_point)
+    d_e_time = time.time()
+
+    # wb_webtoon[T2]
+    e_s_time = time.time()
+    first_story_url = str(driver.find_element(By.CSS_SELECTOR, 'th.active > button').get_attribute('onclick'))[
+                      15:-1]
+    wb_webtoon['T' + str(int(i) + 2)] = first_story_url
+    # print(first_story_url)
+    e_e_time = time.time()
+
+    # print("한 웹툰 접속 시간 : " + str(a_e_time - a_s_time))
+    # print("한 웹툰 총 화수 저장 시간 : " + str(b_e_time - b_s_time))
+    # print("한 웹툰 추천 저장 시간 : " + str(c_e_time - c_s_time))
+    # print("한 웹툰 별점 저장 시간 : " + str(d_e_time - d_s_time))
+    # print("한 웹툰 첫화 링크 저장 시간 : " + str(e_e_time - e_s_time))
+    # print("한 웹툰 총 실행 시간 : " + str(e_e_time - a_s_time))
+    # now = datetime.now()
+    # print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) + "초")
+    # print("=========================")
+
+
 
 
 # code_temp (2), (3)
+# 전체 페이지 파트
 for w in range(len(week)):
     page_num = first_page(url,w)
     wb_siteInfo['D2'] = update_num
@@ -239,9 +277,10 @@ for w in range(len(week)):
         print(str(week[w]) + " Page " + str(p) +" End")
         print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) +"초\n")
 
-## 이제 상세페이지에서 바로 접속 가능한지 찾아보자
-# detail_page()
-## 아니면 클릭해서 넘어가야한다 일일히 4천 몇개를
+# 상세 페이지 파트
+for i in range(update_num - 2):
+    detail_page(i)
+    wb.save(fpath)
 
 # 바뀐 주소 저장
 k = driver.current_url.find('.com')
