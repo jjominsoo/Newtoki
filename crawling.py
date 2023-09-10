@@ -11,6 +11,8 @@ import time
 from datetime import datetime, timedelta
 import requests
 import openpyxl
+import csv
+import pandas
 import pyautogui
 from openpyxl.drawing.image import Image
 import urllib.request
@@ -31,6 +33,8 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 
 # 엑셀파일에 저장된 최근에 접속가능했던 주소를 가져와서 진행한다.
 fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki.xlsx'
+c = open('src/Newtoki.csv','w')
+wc = csv.writer(c)
 wb = openpyxl.load_workbook(fpath)
 wb_siteInfo = wb['Site Information']
 wb_webtoon = wb['webtoon']
@@ -60,6 +64,11 @@ def first_page(url,w):
         #!! 핫스팟으론 되는데 집 와이파이로는 되긴 됐지만 일요일-열흘 이 부분이 안됐다.
         #!! 다시 한번 해봐야 알듯
         #!! https://newtoki306.com/webtoon?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0
+        #~~ 실제로 연결 안되는 url을 셀레니움이 아닌 웹브라우저 크롤로 실행시켰는데 정상 작동했다.
+        #~~ 그 이후 url주소가 바뀌었고 그 뒤로는 크롤링이 잘됐다.
+        #~~ 아마 url주소가 바뀌는 타이밍에 크롤링 시도하면 안되는거 같다?
+
+
         for i in range(1000):
             try:
                 url2 = url + temp
@@ -97,9 +106,13 @@ def first_page(url,w):
 
     driver.implicitly_wait(5)
     time.sleep(1)
+
     response = requests.get(driver.current_url, headers={
         'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+    print(response)
     html = response.text
+    print(html)
+    a = input()
     soup = BeautifulSoup(html, 'html.parser')
     pages = soup.find_all('div', {'class': 'list-page text-center'})
 
@@ -207,16 +220,24 @@ def detail_page(i):
         driver.find_element(By.XPATH,
                             '//*[@id="content_wrapper"]/div[2]/div/div[2]/div/div/div[2]/form/div[3]/div[2]/button').send_keys(
             Keys.ENTER)
+        #!! 처음만 캡챠를 위해 브라우저 띄웠다가 나중에 headless로 바꿀순 없나?
+        # chrome_options.headless = True
+
     driver.implicitly_wait(5)
     a_e_time = time.time()
 
     # 총 회차수
     # wb_webtoon[E2]
-    b_s_time = time.time()
-    total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
-    wb_webtoon['E' + str(int(i) + 2)] = total_num
-    # print(total_num[0])
-    b_e_time = time.time()
+    try:
+        b_s_time = time.time()
+        total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
+        wb_webtoon['E' + str(int(i) + 2)] = int(total_num)
+        # print(total_num[0])
+        b_e_time = time.time()
+    except Exception as e:
+        print(e)
+        wb_webtoon['E' + str(int(i) + 2)] = 0
+
 
     # 추천수
     # wb_webtoon[C2]
@@ -260,7 +281,26 @@ def detail_page(i):
     # print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) + "초")
     # print("=========================")
 
+def save_image_to_excel():
+    img_dir = 'src/img/'
+    no_img_dir = 'src/files/'
+    img_file_list = sorted(os.listdir(img_dir), key=lambda x: int(x.split('.')[0]))
+    for i, img_file in enumerate(img_file_list):
+        try:
+            image_path = os.path.join(img_dir, img_file)
+            image = Image(image_path)
+            wb_webtoon.add_image(image, anchor='B' + str(i + 2))
+        except Exception as e:
+            print(e)
+            image_path = os.path.join(no_img_dir, 'no_image.png')
+            image = Image(image_path)
+            wb_webtoon.add_image(image, anchor='B' + str(i + 2))
 
+        if i == 0:
+            wb_webtoon.column_dimensions['B'].width = image.width * 63.2 / 504.19
+        wb_webtoon.row_dimensions[i + 2].height = image.height * 225.35 / 298.96
+
+    wb.save(fpath)
 
 
 # code_temp (2), (3)
@@ -268,19 +308,21 @@ def detail_page(i):
 for w in range(len(week)):
     page_num = first_page(url,w)
     wb_siteInfo['D2'] = update_num
-    wb.save(fpath)
     for p in range(1,page_num):
         update_num = page_crawl(update_num,w,p)
         wb_siteInfo['D2'] = update_num
-        wb.save(fpath)
         now = datetime.now()
         print(str(week[w]) + " Page " + str(p) +" End")
         print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) +"초\n")
+    wb.save(fpath)
 
 # 상세 페이지 파트
 for i in range(update_num - 2):
     detail_page(i)
     wb.save(fpath)
+
+# 이미지 엑셀 저장 파트
+save_image_to_excel()
 
 # 바뀐 주소 저장
 k = driver.current_url.find('.com')

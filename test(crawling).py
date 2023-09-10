@@ -8,10 +8,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 import re
 import os
 import time
+import csv
+import pandas
 from datetime import datetime, timedelta
 import requests
 import openpyxl
 import pyautogui
+import pyperclip
 
 import urllib.request
 import urllib
@@ -28,6 +31,8 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 
 fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki4.xlsx'
 wb = openpyxl.load_workbook(fpath)
+df = pandas.read_csv('src/Newtoki.csv',encoding='UTF8')
+
 wb_siteInfo = wb['Site Information']
 wb_webtoon = wb['webtoon']
 url = wb_siteInfo['A2'].value
@@ -37,6 +42,7 @@ update_num = wb_siteInfo['D2'].value
 temp = "/webtoon?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0"
 url2 = url + temp
 url3 = 'https://newtoki307.com/webtoon/27392253?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'
+
 
 s_time = time.time()
 # driver.implicitly_wait(10)
@@ -90,9 +96,6 @@ s_time = time.time()
 # for i in range(len(detail_pages)):
 #     detail = detail_pages[i].get_attribute('href')
 # print(detail)
-
-
-
 from urllib.parse import quote_from_bytes
 # print(detail_url)
 # def detail_page(i):
@@ -202,37 +205,92 @@ from urllib.parse import quote_from_bytes
 # print(star_point)
 #
 
-
+import matplotlib.pyplot as mat_plt
+import matplotlib.image as mat_img
 # i = 0~(update_num-2)
 def detail_page(i):
         a_s_time = time.time()
-        detail_url = wb_webtoon['U' + str(int(i)+2)].value
+        # detail_url = wb_webtoon['U' + str(int(i)+2)].value
+        detail_url = df['url'][i]
+        # print(detail_url)
         driver.get(detail_url)
+        #!! 만약 캡챠 틀렸을때도 고려해야한다
         if i == 0:
+                #!! 캡챠 이미지를 다운 받아서 출력해준다면
+                #!! driver를 headless로 해서 속도를 올리려함
+                #~~ 이 작업을 수행하려 하니 IP차단이 먹힘
+                #~~ 화면 캡쳐를 통해 캡챠이미지 추출
+                #!! 결국 캡챠가 안뚫린다 어쩌냐
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                captcha = driver.get_screenshot_as_png()
+                open('captcha.png','wb').write(captcha)
+                a = mat_img.imread('captcha.png')
+                print(driver.current_url)
+                mat_plt.imshow(a[375:410, 540:600])
+                mat_plt.show()
                 captcha_num = pyautogui.prompt("Captcha 입력 >> ")
-                captcha = driver.find_element(By.XPATH, '//*[@id="captcha_key"]')
-                captcha.send_keys(captcha_num)
-                driver.find_element(By.XPATH,
-                                    '//*[@id="content_wrapper"]/div[2]/div/div[2]/div/div/div[2]/form/div[3]/div[2]/button').send_keys(
-                        Keys.ENTER)
-        driver.implicitly_wait(5)
+                captcha = driver.find_element(By.ID, 'captcha_key')
+                captcha.click()
+                pyperclip.copy(captcha_num)
+                captcha.send_keys(Keys.CONTROL,'v')
+
+                # captcha.send_keys(captcha_num)
+                time.sleep(3)
+
+                # driver.find_element(By.CLASS_NAME,'btn btn-color pull-right').send_keys(
+                #         Keys.ENTER)
+                driver.find_element(By.CLASS_NAME, 'btn-color').click()
+                # time.sleep(10)
+
+                driver.implicitly_wait(10)
+        # detail_url2 = wb_webtoon['U' + str(int(i+3))].value
+        # driver.get(detail_url2)
+        # detail_url2 = df['url'][i+1]
+        # driver.get(detail_url2)
+        driver.refresh()
+        driver.implicitly_wait(10)
+        print(driver.current_url)
+        try:
+                response = requests.get(driver.current_url, headers={
+                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+                html = response.text
+        except UnicodeDecodeError as error:
+                print(error)
+                resolved_url = urllib.request.Request(driver.current_url, headers={
+                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+                response = urllib.request.urlopen(resolved_url)
+                html = response.read()
+        soup = BeautifulSoup(html, 'html.parser')
+        print(soup)
         a_e_time = time.time()
+        # a = input()
 
         # 총 회차수
         # wb_webtoon[E2]
-        b_s_time = time.time()
-        total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
-        wb_webtoon['E' + str(int(i)+2)] = total_num
-        # print(total_num[0])
-        b_e_time = time.time()
+        try:
+                b_s_time = time.time()
+                # total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
+                total_num = soup.find_all('li',{'class':'list-item'})
+
+                print("total num start")
+                print(total_num)
+                print("total num end")
+                a = input()
+                # wb_webtoon['E' + str(int(i) + 2)] = int(total_num)
+                b_e_time = time.time()
+        except Exception as e:
+                print(e)
+                wb_webtoon['E' + str(int(i) + 2)] = 0
+        # print(int(total_num))
 
 
         # 추천수
         # wb_webtoon[C2]
         c_s_time = time.time()
         recommend_num = driver.find_element(By.ID, 'wr_good').text
-        wb_webtoon['C' + str(int(i)+2)] = recommend_num
-        # print(recommend_num)
+        recommend_num2 = soup.find('b',{'id':'wr_good'}).text
+        wb_webtoon['C' + str(int(i)+2)] = int(recommend_num)
+        print(recommend_num2)
         c_e_time = time.time()
 
         # 별점
@@ -247,6 +305,15 @@ def detail_page(i):
                         star_point += 0.5
                 else:
                         continue
+
+        # star_temp = soup.find_all('i')
+        # full_star = soup.find_all('i',{'class':'fa fa-star crimson'})
+        # half_star = soup.find_all('i',{'class':'fa fa-star-half-empty crimson'})
+        # no_star = soup.find_all('i',{'class':'fa fa-star-o crimson'})
+        # print(len(full_star), len(half_star), len(no_star))
+        # print(star_temp)
+        # star_point = full_star +
+
         wb_webtoon['D' + str(int(i)+2)] = star_point
         # print(star_point)
         d_e_time = time.time()
@@ -256,9 +323,11 @@ def detail_page(i):
         e_s_time = time.time()
         first_story_url = str(driver.find_element(By.CSS_SELECTOR, 'th.active > button').get_attribute('onclick'))[
                           15:-1]
+        # first_story_url = str(soup.find(attrs={'data-original-title':'첫회보기'}))[15:-1]
         wb_webtoon['T' + str(int(i)+2)] = first_story_url
         # print(first_story_url)
         e_e_time = time.time()
+
 
         print("한 웹툰 접속 시간 : " + str(a_e_time-a_s_time))
         print("한 웹툰 총 화수 저장 시간 : " + str(b_e_time-b_s_time))
@@ -270,7 +339,7 @@ def detail_page(i):
         print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) +"초")
         print("=========================")
 
-for i in range(update_num-2):
+for i in range(3):
         detail_page(i)
         wb.save(fpath)
 
