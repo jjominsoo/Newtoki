@@ -35,13 +35,12 @@ week['Q1'] = '한국'
 week['R1'] = '중국'
 week['S1'] = '요일'
 week['T1'] = '1화링크'
-# week['U1'] = '상세페이지 URL'
+week['U1'] = '상세페이지 URL'
 
-wb.save(r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki5.xlsx')
+wb.save(r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki6.xlsx')
 
 df = pandas.DataFrame(columns=['url'])
 df.to_csv("src/Newtoki.csv",index=False, encoding='UTF8')
-
 c = open('src/Newtoki.csv','a',newline='',encoding='UTF8')
 wc = csv.writer(c)
 wc.writerow(['https://newtoki307.com/webtoon/266771/%EB%AC%B5%ED%96%A5-%EB%8B%A4%ED%81%AC%EB%A0%88%EC%9D%B4%EB%94%94?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])

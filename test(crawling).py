@@ -22,6 +22,9 @@ from bs4 import BeautifulSoup
 
 
 chrome_options = Options()
+#!! headless하면 request를 못받는거 같다 (없이는 정상작동)
+#!! headless를 막는 사이트도 있다던데 일단 더 확인해보자
+# chrome_options.add_argument("--headless=new")
 chrome_options.add_experimental_option("detach",True)
 chrome_options.add_experimental_option("excludeSwitches",["enable-logging"])
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -38,6 +41,8 @@ wb_webtoon = wb['webtoon']
 url = wb_siteInfo['A2'].value
 saved_url = wb_siteInfo['A2'].value
 update_num = wb_siteInfo['D2'].value
+d_url = wb_webtoon['U']
+
 # 프로그램 총 실행시간 체크
 temp = "/webtoon?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0"
 url2 = url + temp
@@ -207,63 +212,71 @@ from urllib.parse import quote_from_bytes
 
 import matplotlib.pyplot as mat_plt
 import matplotlib.image as mat_img
-# i = 0~(update_num-2)
-def detail_page(i):
-        a_s_time = time.time()
-        # detail_url = wb_webtoon['U' + str(int(i)+2)].value
+# i = 0~(update_num-2)21
+def captcha():
         detail_url = df['url'][i]
-        # print(detail_url)
         driver.get(detail_url)
-        #!! 만약 캡챠 틀렸을때도 고려해야한다
-        if i == 0:
-                #!! 캡챠 이미지를 다운 받아서 출력해준다면
-                #!! driver를 headless로 해서 속도를 올리려함
-                #~~ 이 작업을 수행하려 하니 IP차단이 먹힘
-                #~~ 화면 캡쳐를 통해 캡챠이미지 추출
-                #!! 결국 캡챠가 안뚫린다 어쩌냐
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                captcha = driver.get_screenshot_as_png()
-                open('captcha.png','wb').write(captcha)
-                a = mat_img.imread('captcha.png')
-                print(driver.current_url)
-                mat_plt.imshow(a[375:410, 540:600])
-                mat_plt.show()
-                captcha_num = pyautogui.prompt("Captcha 입력 >> ")
-                captcha = driver.find_element(By.ID, 'captcha_key')
-                captcha.click()
-                pyperclip.copy(captcha_num)
-                captcha.send_keys(Keys.CONTROL,'v')
+        driver.minimize_window()
 
-                # captcha.send_keys(captcha_num)
-                time.sleep(3)
+        # !! 만약 캡챠 틀렸을때도 고려해야한다
 
-                # driver.find_element(By.CLASS_NAME,'btn btn-color pull-right').send_keys(
-                #         Keys.ENTER)
-                driver.find_element(By.CLASS_NAME, 'btn-color').click()
-                # time.sleep(10)
 
-                driver.implicitly_wait(10)
-        # detail_url2 = wb_webtoon['U' + str(int(i+3))].value
-        # driver.get(detail_url2)
-        # detail_url2 = df['url'][i+1]
-        # driver.get(detail_url2)
-        driver.refresh()
-        driver.implicitly_wait(10)
-        print(driver.current_url)
+        # !! 캡챠 이미지를 다운 받아서 출력해준다면
+        # !! driver를 headless로 해서 속도를 올리려함
+        # ~~ 이 작업을 수행하려 하니 IP차단이 먹힘
+        # ~~ 화면 캡쳐를 통해 캡챠이미지 추출
+        # !! 결국 캡챠가 안뚫린다 어쩌냐
+        # ~~ session에 cookie를 업데이트 함으로써 진행
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        captcha = driver.get_screenshot_as_png()
+        open('captcha.png', 'wb').write(captcha)
+        a = mat_img.imread('captcha.png')
+        mat_plt.imshow(a[370:415, 535:605])
+        mat_plt.show()
+
+        #!! plt랑 pyautogui 동시에 나오게 하는법 없나?
+        #!! 아님 plt에서 입력받는 법 없나?
+        captcha_num = pyautogui.prompt("Captcha 입력 >> ")
+        captcha = driver.find_element(By.ID, 'captcha_key')
+        captcha.click()
+        pyperclip.copy(captcha_num)
+        captcha.send_keys(Keys.CONTROL, 'v')
+        driver.find_element(By.CLASS_NAME, 'btn-color').click()
+
+        for c in driver.get_cookies():
+                cookie = {c['name']: c['value']}
+
+        driver.quit()
+        return cookie
+
+
+def detail_page(i,cookie):
+        a_s_time = time.time()
+        # detail_url = df['url'][i]
+        detail_url = wb_webtoon['U'+str(i+2)].value
+
+        session = requests.Session()
+        headers = {
+                'User-Agent' : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+        }
+        session.headers.update(headers)
+        session.cookies.update(cookie)
+
         try:
-                response = requests.get(driver.current_url, headers={
-                        'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+                # response = requests.get(driver.current_url, headers={
+                #         'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
+                response = session.get(detail_url, headers={'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
                 html = response.text
+        # 에러 체크용 (requests가 잘받는지)
         except UnicodeDecodeError as error:
                 print(error)
                 resolved_url = urllib.request.Request(driver.current_url, headers={
                         'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
                 response = urllib.request.urlopen(resolved_url)
                 html = response.read()
+
         soup = BeautifulSoup(html, 'html.parser')
-        print(soup)
         a_e_time = time.time()
-        # a = input()
 
         # 총 회차수
         # wb_webtoon[E2]
@@ -271,79 +284,70 @@ def detail_page(i):
                 b_s_time = time.time()
                 # total_num = driver.find_element(By.CSS_SELECTOR, 'ul.list-body>li').get_attribute('data-index')
                 total_num = soup.find_all('li',{'class':'list-item'})
-
-                print("total num start")
-                print(total_num)
-                print("total num end")
-                a = input()
-                # wb_webtoon['E' + str(int(i) + 2)] = int(total_num)
+                wb_webtoon['E' + str(int(i) + 2)] = len(total_num)
+                # print("총 회차수 : " + str(len(total_num)))
                 b_e_time = time.time()
         except Exception as e:
                 print(e)
                 wb_webtoon['E' + str(int(i) + 2)] = 0
-        # print(int(total_num))
-
 
         # 추천수
         # wb_webtoon[C2]
         c_s_time = time.time()
-        recommend_num = driver.find_element(By.ID, 'wr_good').text
-        recommend_num2 = soup.find('b',{'id':'wr_good'}).text
+        # recommend_num = driver.find_element(By.ID, 'wr_good').text
+        recommend_num = soup.find('b',{'id':'wr_good'}).text
         wb_webtoon['C' + str(int(i)+2)] = int(recommend_num)
-        print(recommend_num2)
+        # print("추천수 : " + str(recommend_num))
         c_e_time = time.time()
 
         # 별점
         # wb_webtoon[D2]
         d_s_time = time.time()
-        stars = driver.find_elements(By.CSS_SELECTOR, 'button.btn-white > i')
-        star_point = 0
-        for star in stars:
-                if star.get_attribute('class') == 'fa fa-star crimson':
-                        star_point += 1
-                elif star.get_attribute('class') == 'fa fa-star-half-empty crimson':
-                        star_point += 0.5
-                else:
-                        continue
+        # stars = driver.find_elements(By.CSS_SELECTOR, 'button.btn-white > i')
+        # star_point = 0
+        # for star in stars:
+        #         if star.get_attribute('class') == 'fa fa-star crimson':
+        #                 star_point += 1
+        #         elif star.get_attribute('class') == 'fa fa-star-half-empty crimson':
+        #                 star_point += 0.5
+        #         else:
+        #                 continue
+        full_star2 = soup.select('button.btn-white > i.fa-star')
+        half_star2 = soup.select('button.btn-white > i.fa-star-half-empty')
 
-        # star_temp = soup.find_all('i')
-        # full_star = soup.find_all('i',{'class':'fa fa-star crimson'})
-        # half_star = soup.find_all('i',{'class':'fa fa-star-half-empty crimson'})
-        # no_star = soup.find_all('i',{'class':'fa fa-star-o crimson'})
-        # print(len(full_star), len(half_star), len(no_star))
-        # print(star_temp)
-        # star_point = full_star +
-
+        star_point = len(full_star2) + (len(half_star2)*0.5)
+        # print("별점 : " + str(star_point))
         wb_webtoon['D' + str(int(i)+2)] = star_point
-        # print(star_point)
         d_e_time = time.time()
 
-
+        # 첫화 링크
         # wb_webtoon[T2]
         e_s_time = time.time()
-        first_story_url = str(driver.find_element(By.CSS_SELECTOR, 'th.active > button').get_attribute('onclick'))[
-                          15:-1]
-        # first_story_url = str(soup.find(attrs={'data-original-title':'첫회보기'}))[15:-1]
+        # first_story_url = str(driver.find_element(By.CSS_SELECTOR, 'th.active > button').get_attribute('onclick'))[
+        #                   15:-1]
+        first_story = soup.find('button', attrs={'data-original-title':'첫회보기'})
+        first_story_url = str(first_story.attrs['onclick'])[15: -1]
         wb_webtoon['T' + str(int(i)+2)] = first_story_url
         # print(first_story_url)
         e_e_time = time.time()
 
+        if i == 0:
+                print("한 웹툰 접속 시간 : " + str(a_e_time-a_s_time))
+                print("한 웹툰 총 화수 저장 시간 : " + str(b_e_time-b_s_time))
+                print("한 웹툰 추천 저장 시간 : " + str(c_e_time-c_s_time))
+                print("한 웹툰 별점 저장 시간 : " + str(d_e_time-d_s_time))
+                print("한 웹툰 첫화 링크 저장 시간 : " + str(e_e_time-e_s_time))
+                print("한 웹툰 총 실행 시간 : " + str(e_e_time-a_s_time))
+                now = datetime.now()
+                print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) +"초")
+                print("=========================")
 
-        print("한 웹툰 접속 시간 : " + str(a_e_time-a_s_time))
-        print("한 웹툰 총 화수 저장 시간 : " + str(b_e_time-b_s_time))
-        print("한 웹툰 추천 저장 시간 : " + str(c_e_time-c_s_time))
-        print("한 웹툰 별점 저장 시간 : " + str(d_e_time-d_s_time))
-        print("한 웹툰 첫화 링크 저장 시간 : " + str(e_e_time-e_s_time))
-        print("한 웹툰 총 실행 시간 : " + str(e_e_time-a_s_time))
-        now = datetime.now()
-        print("현재 시간 : " + str(now.hour) + "시 " + str(now.minute) + "분 " + str(now.second) +"초")
-        print("=========================")
-
-for i in range(3):
-        detail_page(i)
+for i in range(update_num-2):
+        if i == 0:
+                cookie = captcha()
+        detail_page(i,cookie)
         wb.save(fpath)
 
 driver.implicitly_wait(3)
-driver.quit()
 e_time = time.time()
 print("총 실행시간 : " + str(e_time-s_time))

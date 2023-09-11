@@ -21,7 +21,18 @@
 # for w in range(1, len(week)):
 #     print(week[w])
 
-import re
-a = "a s d b dd 아?"
-b = re.sub(r"[^\uAC00-\uD7A30\s]","",a)
-print(b)
+# import re
+# a = "a s d b dd 아?"
+# b = re.sub(r"[^\uAC00-\uD7A30\s]","",a)
+# print(b)
+
+total_time = 4535
+
+hour = total_time//3600
+min = (total_time - 3600*hour)//60
+second = total_time%60
+print(hour, min,second)
+
+recommend_num = '1,113'
+recommend_num = recommend_num.replace(",", "")
+print(int(recommend_num))

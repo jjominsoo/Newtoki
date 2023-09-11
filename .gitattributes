@@ -1,0 +1,4 @@
+Newtoki.csv filter=lfs diff=lfs merge=lfs -text
+Newtoki.xlsx filter=lfs diff=lfs merge=lfs -text
+Newtoki2.xlsx filter=lfs diff=lfs merge=lfs -text
+Newtoki3.xlsx filter=lfs diff=lfs merge=lfs -text
