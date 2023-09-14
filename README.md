@@ -217,6 +217,8 @@ git 문법을 까먹어서 다시 공부 ./git.md 참고
    4.1 모든 작업이 request로 진행하다보니 ip차단이 걸리는 부분이다. User-Agent를 해도 차단당하므로 IP주소를 바꾸고 실행 속도를 조절하면서 피해봐야겠다.
    ##### https://blog.hashscraper.com/5-principles-for-bypassing-web-crawling-blocks/
 
+   4.2 중간에 ip차단 되면 어떤 웹툰부터 됐는지 시간이 언젠지 기록해놓자. 보통 공용와이파이는 2시간마다 ip가 바뀐다고 한다.
 
+   
 5. create_excel
    5.1 추후 작업을 편하게 하기 위해 csv파일로 저장해야하는데 xlsx파일로 저장했다. 나중에 csv파일로 바꾸자 (모든 코드를 수정해야하므로 마지막에 하자)
