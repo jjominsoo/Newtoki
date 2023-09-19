@@ -12,6 +12,7 @@ recent num - 2 = 여태 저장된 웹툰 수 (단지 저장 편하게 하려고)
 토
 일
 열
+<<<<<<< HEAD
 
 
 9.12
@@ -1091,3 +1092,5 @@ C:\Users\jjomi\AppData\Local\Programs\Python\Python311\python.exe C:/Users/jjomi
 지연 크롤링을 위한 시간 : 2.332555344130016
 
 Process finished with exit code -1
+=======
+>>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e

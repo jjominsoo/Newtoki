@@ -2,6 +2,9 @@ Newtoki.csv filter=lfs diff=lfs merge=lfs -text
 Newtoki.xlsx filter=lfs diff=lfs merge=lfs -text
 Newtoki2.xlsx filter=lfs diff=lfs merge=lfs -text
 Newtoki3.xlsx filter=lfs diff=lfs merge=lfs -text
+<<<<<<< HEAD
 Newtoki(image+detail).xlsx filter=lfs diff=lfs merge=lfs -text
 *.xlsx filter=lfs diff=lfs merge=lfs -text
 Newtoki_image+detail.xlsx filter=lfs diff=lfs merge=lfs -text
+=======
+>>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e

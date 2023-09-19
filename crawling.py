@@ -403,11 +403,6 @@ wb.save(fpath)
 print("모든 웹툰 크롤링 완료")
 
 
-#!! 나중에 총화수 0인것 그냥 빼버리자
-
-
-
-
 driver.implicitly_wait(3)
 
 e_time = time.time()

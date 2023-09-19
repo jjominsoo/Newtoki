@@ -226,6 +226,10 @@ def captcha():
                 for c in driver.get_cookies():
                         cookie = {c['name']: c['value']}
                 return cookie
+        driver.minimize_window()
+
+        # !! 만약 캡챠 틀렸을때도 고려해야한다
+
 
         # !! 캡챠 이미지를 다운 받아서 출력해준다면
         # !! driver를 headless로 해서 속도를 올리려함
@@ -244,6 +248,8 @@ def captcha():
         #!! 아님 plt에서 입력받는 법 없나?
 
         captcha_num = pyautogui.prompt("Captcha 입력 >> ")
+        captcha_num = pyautogui.prompt("Captcha 입력 >> ")
+        captcha = driver.find_element(By.ID, 'captcha_key')
         captcha.click()
         pyperclip.copy(captcha_num)
         captcha.send_keys(Keys.CONTROL, 'v')
@@ -310,8 +316,8 @@ def detail_page(i,cookie):
         # wb_webtoon[D2]
         d_s_time = time.time()
         # stars = driver.find_elements(By.CSS_SELECTOR, 'button.btn-white > i')
-        # star_point = 0
         # for star in stars:4
+        # for star in stars:
         #         if star.get_attribute('class') == 'fa fa-star crimson':
         #                 star_point += 1
         #         elif star.get_attribute('class') == 'fa fa-star-half-empty crimson':
@@ -368,6 +374,10 @@ for i in range(3):
         if i == 0:
             cookie = captcha()
         detail_page(i, cookie)
+for i in range(update_num-2):
+        if i == 0:
+                cookie = captcha()
+        detail_page(i,cookie)
         wb.save(fpath)
 
 driver.implicitly_wait(3)

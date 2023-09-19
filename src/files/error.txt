@@ -54,6 +54,7 @@ response.text
 ...
 차이)
 https://moondol-ai.tistory.com/238
+<<<<<<< HEAD
 
 
 이미지 저장
@@ -62,3 +63,5 @@ cannot identify image file 'src/img/2571.png'
 cannot identify image file 'src/img/3205.png'
 cannot identify image file 'src/img/3293.png'
 cannot identify image file 'src/img/3801.png'
+=======
+>>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e
