@@ -7,8 +7,6 @@ import pandas as pd
 from openpyxl.drawing.image import Image as XLImage
 from PIL import Image
 fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki7.xlsx'
-c = open('src/Newtoki.csv','w')
-wc = csv.writer(c)
 
 # xls = pd.ExcelFile(fpath)
 # df = xls.parse(xls.sheet_names[2])
@@ -26,6 +24,7 @@ wb_webtoon = wb['webtoon']
 # 이미지도 지우고
 # site_info 수정도 잊지말고
 # 엑셀에서 행을 지워버리고 위로 정렬하는것도 좋아보임
+# 최초 1번 실행
 def delete_nothing():
     delete_row = []
     for i, row in enumerate(df['총화수']):
@@ -36,24 +35,41 @@ def delete_nothing():
     df.drop(['이미지'],axis=1,inplace=True)
     df.drop(delete_row,axis=0,inplace=True)
     df3.drop(delete_row,axis=0,inplace=True)
-
 delete_nothing()
 
-# df.to_excel(fpath)
+# print(df.iloc[0:2,4:17])
+# print(df)
 
-new_df = df.to_csv("src/Newtoki_webtoon.csv",sep=",",index=False)
-new_df3 = df3.to_csv("src/Newtoki_update.csv",sep=",",index=False)
+def merge_genre(df):
+    total_genre = []
+    for i in range(len(df)):
+        temp_genre = []
+        for j in range(4, 17):
+            # print(df.iloc[i,j])
+            if not pd.isna(df.iloc[i, j]):
+                temp_genre.append(df.columns[j])
+        total_genre.append(','.join(temp_genre))
+    # print(total_genre)
+    df['장르모음'] = total_genre
+    df = df.drop(df.columns[4:17],axis=1)
+    # print(df.columns)
+    return df
+    # for i, row in enumerate(df.loc):
+df = merge_genre(df)
+
+df.to_csv("src/Newtoki_webtoon2.csv",sep=",",index=False)
+# new_df3 = df3.to_csv("src/Newtoki_name.csv",sep=",",index=False)
+
+
+
+
+
+
+
+
 
 
 # 일단 확실하게 이름 저장된 부분 (site_information)은 따로 csv파일로 저장하는거고
-
-
-
-
-# print(df)
-# print(len(df['총화수']))
-
-
 
 # 이미지 엑셀 저장 파트
 # 이미지는 크롤링 개념이 아니라 이미 다운받은 파일을 삽입하는 과정이므로 따로 구현했다.

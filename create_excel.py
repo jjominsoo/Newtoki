@@ -40,10 +40,10 @@ week['U1'] = '상세페이지 URL'
 
 wb.save(r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki6.xlsx')
 
-df = pandas.DataFrame(columns=['url'])
-df.to_csv("src/Newtoki.csv",index=False, encoding='UTF8')
-c = open('src/Newtoki.csv','a',newline='',encoding='UTF8')
-wc = csv.writer(c)
-wc.writerow(['https://newtoki307.com/webtoon/266771/%EB%AC%B5%ED%96%A5-%EB%8B%A4%ED%81%AC%EB%A0%88%EC%9D%B4%EB%94%94?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])
-wc.writerow(['https://newtoki307.com/webtoon/11355191/%EB%8F%85%EB%B3%B4%EC%86%8C%EC%9A%94?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])
-wc.writerow(['https://newtoki307.com/webtoon/26028719/%EC%95%84-%ED%98%95%EC%82%B0%ED%8C%8C?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])
+# df = pandas.DataFrame(columns=['url'])
+# df.to_csv("src/Newtoki.csv",index=False, encoding='UTF8')
+# c = open('src/Newtoki.csv','a',newline='',encoding='UTF8')
+# wc = csv.writer(c)
+# wc.writerow(['https://newtoki307.com/webtoon/266771/%EB%AC%B5%ED%96%A5-%EB%8B%A4%ED%81%AC%EB%A0%88%EC%9D%B4%EB%94%94?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])
+# wc.writerow(['https://newtoki307.com/webtoon/11355191/%EB%8F%85%EB%B3%B4%EC%86%8C%EC%9A%94?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])
+# wc.writerow(['https://newtoki307.com/webtoon/26028719/%EC%95%84-%ED%98%95%EC%82%B0%ED%8C%8C?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'])

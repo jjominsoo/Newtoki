@@ -26,7 +26,7 @@
 # b = re.sub(r"[^\uAC00-\uD7A30\s]","",a)
 # print(b)
 
-<<<<<<< HEAD
+# <<<<<<< HEAD
 # total_time = 4535
 #
 # hour = total_time//3600
@@ -44,17 +44,25 @@
 # img = f'src/files/{i}.png'
 # shutil.copyfile(temp_img,img)
 
-for i in range(2,10):
-    print(i)
-=======
-total_time = 4535
+# for i in range(2,10):
+#     print(i)
+# # =======
+# total_time = 4535
+#
+# hour = total_time//3600
+# min = (total_time - 3600*hour)//60
+# second = total_time%60
+# print(hour, min,second)
+#
+# recommend_num = '1,113'
+# recommend_num = recommend_num.replace(",", "")
+# print(int(recommend_num))
+# >>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e
 
-hour = total_time//3600
-min = (total_time - 3600*hour)//60
-second = total_time%60
-print(hour, min,second)
+webtoon_first_url = "https://newtoki307.com/webtoon/438868?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0"
+print(len(webtoon_first_url))
 
-recommend_num = '1,113'
-recommend_num = recommend_num.replace(",", "")
-print(int(recommend_num))
->>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e
+webtoon_genre = ['무협','중국']
+a = ",".join(webtoon_genre)
+print(a)
+# for genr?e in webtoon_genre:
