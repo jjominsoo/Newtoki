@@ -378,18 +378,23 @@ def detail_page_crawling():
 
 
 import pandas as pd
+import os
+import random
 df = pd.read_csv("src/Newtoki_name.csv")
 df2 = pd.read_csv("src/Newtoki_webtoon3.csv")
-f = open("src/files/info.txt",'a')
-f2 = open("src/files/bookmark.txt",'w')
-with open("src/files/bookmark.txt",'r') as f3:
-    last_num = f3.readlines()[-2]
-    last_webtoon_source = f3.readlines()[-1]
+
+if os.path.getsize("src/files/bookmark.txt") <= 0:
+    f = open("src/files/bookmark.txt",'w',encoding='utf8')
+    f.write("0\n")
+    f.write("\n")
+    f.write("\n")
+    f.close()
 
 # 웹툰을 어디서 볼 수 있는지도 알려주면 좋을거 같다. (불법사이트 쓰지말아라!)
 # 웹툰 플랫폼이 많아서 그냥 구글에 검색했을 때 1순위로 나오는 곳을 적었다.
 # 순위는 카카오페이지 > 네이버 시리즈 > 탑툰 > 레진 이라는데 애매해서 걍 상위에 있는 사이트 3개를 가져오도록하자.
 # 나무위키 제외하고 만약 대표하는 사이트가 2개 중복으로 나오면 바로 종료
+# captcha뜨면 바로 현재상황 저장해놓고 나중에 불러와서 시간날때마다 진행하도록 하자
 
 # driver.close()
 import traceback
@@ -417,16 +422,51 @@ import traceback
 # driverK.implicitly_wait(10)
 #
 
-def where_to_find_webtoon(last_when,last_webtoon_source):
+def where_to_find_webtoon():
     # df['웹툰보는곳'] = 0
-    webtoon_source = []
-    platform = []
+    with open("src/files/bookmark.txt", 'r', encoding="utf8") as f3:
+        # bookmark.txt에는 웹툰번호 / 여태저장한 리스트 가 저장될 것이다.
+        # 오래 걸리기 때문에, 중간에 에러가 나면 다시 진행하기 위해
+        last_update = f3.readlines()
+        last_num = int(last_update[-3].strip("\n"))
+        last_webtoon_source = last_update[-2].strip("\n")
+        last_platform = last_update[-1].strip("\n")
+        if len(last_webtoon_source) > 0:
+            last_source_update = last_webtoon_source.split("?")
+            last_platform_update = last_platform.split("?")
+
+        else:
+            last_source_update = []
+            last_platform_update = []
+
+    webtoon_source = last_source_update
+    platform = last_platform_update
     find_webtoon_source_s_time = time.time()
-    for i in range(last_when,len(df)):
-        query = df.loc[i]['Update List'] + "+웹툰"
-            # query = "던전속사정+웹툰"
-        url = 'https://www.google.com/search?q=' + query
-        driver.get(url)
+
+    ########################ㅜ여기 len(df)
+    for i in range(last_num,50):
+        # query = "정열맨 웹툰"
+
+
+
+        query = df.loc[i]['Update List'] + " 웹툰"
+
+        # !!쿼리를 검색창에 입력하고 검색버튼을 누르는 식으로 캡챠를 피해보자
+        # !!이래도 캡챠에 걸린다. 48개
+
+        # 그래서 20번째 마다 refresh
+        if i%20 == 0:
+            time.sleep(0.5 + random.uniform(0.5, 1))
+
+        if i == last_num:
+            driver.get('https://www.google.com/search?q=' + query)
+        else:
+            text_area = driver.find_element(By.ID, "APjFqb")
+            text_area.clear()
+            text_area.send_keys(query)
+            driver.find_element(By.CLASS_NAME, "Tg7LZd").send_keys(Keys.ENTER)
+
+
         try:
             # response = requests.get(url, headers={
             #     'User-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'})
@@ -434,14 +474,15 @@ def where_to_find_webtoon(last_when,last_webtoon_source):
             # soup = BeautifulSoup(html, 'html.parser')
             # print(soup)
             # a = soup.select(".VuuXrf")
-
+            driver.implicitly_wait(10)
             a = driver.find_elements(By.CSS_SELECTOR, 'span.VuuXrf')
             temp = []
+            # 플랫폼은 3개만 받을거다 (메이저플랫폼만 받기 위해)
+            # 그리고 모든 플랫폼을 저장할 것이다.
+            # 중복되면 따로 저장은 안한다.
             for j in range(0, 5, 2):
                 # 플랫폼 종류 확인
-                if a[j].text not in platform:
-                    platform.append(a[j].text)
-                if a[j].text == 'kakao.com':
+                if a[j].text == 'kakao.com' or a[j].text == "kakaocorp.com":
                     temp_nft = '카카오페이지'
                 elif a[j].text == 'Naver':
                     temp_nft = '네이버웹툰'
@@ -451,30 +492,37 @@ def where_to_find_webtoon(last_when,last_webtoon_source):
                     temp_nft = '탑툰'
                 else:
                     temp_nft = a[j].text
-
+                if temp_nft not in platform:
+                    platform.append(temp_nft)
+                    print(platform)
                 if temp_nft in temp:
                     continue
                 temp.append(temp_nft)
-
+            # webtoon_source = ["카카오웹툰","네이버웹툰","레진코믹스"]
             webtoon_source.append(','.join(temp))
             # print(webtoon_source)
-            if i%100 == 0:
-                find_webtoon_source_e_time = time.time()
-                print(str(i*100) + "번째 웹툰 완료 시간 : " + str(find_webtoon_source_e_time-find_webtoon_source_s_time))
-                # find_webtoon_source_s_time = time.time()
+            find_webtoon_source_e_time = time.time()
+            print(str(i) + "번째 웹툰 완료 시간 : " + str(find_webtoon_source_e_time-find_webtoon_source_s_time))
+            # find_webtoon_source_s_time = time.time()
+
+        # 캡챠가 걸린다면
         except Exception as e:
-            print(e)
+            print(traceback.format_exc())
             print("Error at "+str(i))
-            f2.write(i)
-            f2.write(','.join(webtoon_source))
-            k = input()
+            # print(i)
+            # print(webtoon_source)
+            f2 = open("src/files/bookmark.txt",'w',encoding='utf8')
+            f2.write(str(i)+"\n")
+            f2.write("?".join(webtoon_source)+"\n")
+            f2.write(",".join(platform))
+            f2.close()
+            ## 수동으로 캡챠한 다음에 다시 실행해보자
+            time.sleep(0.5)
             a = driver.find_elements(By.CSS_SELECTOR, 'span.VuuXrf')
             temp = []
             for j in range(0, 5, 2):
                 # 플랫폼 종류 확인
-                if a[j].text not in platform:
-                    platform.append(a[j].text)
-                if a[j].text == 'kakao.com':
+                if a[j].text == 'kakao.com' or a[j].text == "kakaocorp.com":
                     temp_nft = '카카오페이지'
                 elif a[j].text == 'Naver':
                     temp_nft = '네이버웹툰'
@@ -484,22 +532,30 @@ def where_to_find_webtoon(last_when,last_webtoon_source):
                     temp_nft = '탑툰'
                 else:
                     temp_nft = a[j].text
-
+                if temp_nft not in platform:
+                    platform.append(temp_nft)
+                    print(platform)
                 if temp_nft in temp:
                     continue
                 temp.append(temp_nft)
 
             webtoon_source.append(','.join(temp))
             # print(webtoon_source)
-            if i % 100 == 0:
+            if i % 10 == 0:
                 find_webtoon_source_e_time = time.time()
                 print(str(i) + "번째 웹툰 완료 시간 : " + str(find_webtoon_source_e_time - find_webtoon_source_s_time))
                 # find_webtoon_source_s_time = time.time()
-    print(platform)
-    df2['웹툰보는곳'] = webtoon_source
-    f.write(','.join(platform))
-    f.close()
-    f2.close()
+
+
+    # print(webtoon_source)
+    # print(platform)
+
+    df2['웹툰보는곳'] = webtoon_source + [""]*(len(df)-len(webtoon_source))
+    df2.to_csv("src/Newtoki_webtoon_platform2.csv", index=False)
+    f3 = open("src/files/bookmark.txt", 'w', encoding='utf8')
+    f3.write("finished!!!!")
+    f3.close()
+    driver.close()
     print(df2)
 
 where_to_find_webtoon()

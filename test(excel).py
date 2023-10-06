@@ -108,11 +108,11 @@ import csv
 import os
 from openpyxl.drawing.image import Image
 from openpyxl import Workbook
-fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki3.xlsx'
-wb = openpyxl.load_workbook(fpath)
-wb_siteInfo = wb['Site Information']
-wb_webtoon = wb['webtoon']
-df = pandas.read_csv('src/Newtoki.csv')
+# fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki3.xlsx'
+# wb = openpyxl.load_workbook(fpath)
+# wb_siteInfo = wb['Site Information']
+# wb_webtoon = wb['webtoon']
+# df = pandas.read_csv('src/Newtoki.csv')
 
 # img_dir = 'src/img/'
 # no_img_dir = 'src/files/'
@@ -131,9 +131,17 @@ df = pandas.read_csv('src/Newtoki.csv')
 #     if i == 0:
 #         wb_webtoon.column_dimensions['B'].width = image.width*63.2/504.19
 #     wb_webtoon.row_dimensions[i+2].height = image.height*225.35/298.96
-print(df['제목'])
+# print(df['제목'])
+#
+#
+# wb.save(fpath)
 
-
-wb.save(fpath)
-
+fpath = r'C:\Users\jjomi\PycharmProjects\NewtokkiCrawling\src\Newtoki_webtoon3.csv'
+df = pandas.read_csv(fpath)
+print(df)
+update = ["카카오페이지,네이버","네이버","레진코믹스,카카오페이지"]
+ss = update + [""]*(len(df)-len(update))
+print(ss)
+df['플랫폼'] = ss
+print(df)
 # (updating_date-last_update).days

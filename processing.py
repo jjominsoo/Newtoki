@@ -20,6 +20,7 @@ wb = openpyxl.load_workbook(fpath)
 wb_siteInfo = wb['Site Information']
 wb_webtoon = wb['webtoon']
 
+
 # 총 화수가 0이면 그냥 추가하지말자
 # 이미지도 지우고
 # site_info 수정도 잊지말고

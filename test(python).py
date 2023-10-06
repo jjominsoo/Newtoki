@@ -59,10 +59,45 @@
 # print(int(recommend_num))
 # >>>>>>> 2b8f3df3de3f3e63702947fcfb1bfe7c0ec4725e
 
-webtoon_first_url = "https://newtoki307.com/webtoon/438868?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0"
-print(len(webtoon_first_url))
-
-webtoon_genre = ['무협','중국']
-a = ",".join(webtoon_genre)
-print(a)
+# webtoon_first_url = "https://newtoki307.com/webtoon/438868?sst=as_update&sod=desc&yoil=%EC%9B%94&toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0"
+# print(len(webtoon_first_url))
+#
+# webtoon_genre = ['무협','중국']
+# a = ",".join(webtoon_genre)
+# print(a)
 # for genr?e in webtoon_genre:
+
+import os
+
+if os.path.getsize("src/files/bookmark.txt") <= 0:
+    f2 = open("src/files/bookmark.txt",'w',encoding='utf8')
+    f2.write("0\n")
+    f2.write("\n")
+    f2.write("\n")
+    print("hemllod")
+    f2.close()
+# with open("src/files/bookmark.txt",'r',encoding="utf8") as f3:
+#     ## bookmark.txt에는 웹툰번호 / 여태저장한 리스트 가 저장될 것이다.
+#     a = f3.readlines()
+#     k = int(a[-2].strip("\n"))
+#     k2 = a[-1].strip("\n")
+#     if len(k2) > 0:
+#         k3 = k2.split(".")
+#     else:
+#         k3 = []
+#     print(k)
+#     print(k2)
+#     print(k3)
+#
+#     f2 = open("src/files/bookmark.txt", 'w', encoding='utf8')
+#
+#     l = 2
+#     l2 = ["탑툰,카카오웹툰","카카오웹툰,레진코믹스,네이버웹툰"]
+#     f2.write(str(k+l)+"\n")
+#     f2.write(".".join(k3 + l2))
+#     f2.close()
+#
+#     f4 = open("src/files/bookmark.txt", 'r', encoding='utf8')
+#     print(f4.read())
+# print(last_num)
+# print(last_webtoon_source)
