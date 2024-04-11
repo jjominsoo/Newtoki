@@ -25,7 +25,7 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 ## 나중에 Update.py에서 활용할 수 도 있다.
 ## WebtoonInfo.csv   : 모든 웹툰들을 정리한 csv파일
 ## Mark.csv          : 마지막으로 업데이트한 웹툰 이름을 저장한 csv파일 > 자주 변동되는 url주소를 확인하기 위해 쓰일 것임
-func.InitCSV()
+# func.InitCSV()
 
 ## 비정기적으로 바뀌는 도메인 주소
 ## 마지막으로 접속 가능했던 도메인 주소에 1씩 더해가면서 접속 가능한 주소를 찾음
