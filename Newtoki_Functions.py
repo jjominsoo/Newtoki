@@ -4,15 +4,19 @@ import time
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
-# WebtoonInfo.csv   : 모든 웹툰들을 정리한 csv파일
+
+# Web toonInfo.csv   : 모든 웹툰들을 정리한 csv파일
 # Mark.csv          : 마지막으로 업데이트한 웹툰 이름을 저장한 csv파일 > 자주 변동되는 url주소를 확인하기 위해 쓰일 것임
+
 def InitCSV():
-    df = pd.DataFrame(columns=['이름', '작가/그림', '장르','요일', '추천수', '별점(총)', '별점(화)', '총화수', '댓글', '줄거리', '이미지', '플랫폼', '첫화링크','업데이트'])
+    df = pd.DataFrame(columns=['이름', '작가/그림', '장르', '요일', '추천수', '별점(총)', '별점(화)', '총화수',
+                               '댓글', '줄거리', '이미지', '플랫폼', '링크', '업데이트'])
     df.to_csv('src/WebtoonInfo.csv', index=False)
-    init_mark = {'이름': '', '순서': 0, '도메인': 'https://newtoki328.com/webtoon?toon=%EC%9D%BC%EB%B0%98%EC%9B%B9%ED%88%B0'}
+    init_mark = {'이름': '', '순서': 0, '도메인': 'https://newtoki328.com/'}
     mark_index = [0]
     mark = pd.DataFrame(init_mark, index=mark_index)
     mark.to_csv('src/Mark.csv', index=False)
+
 
 def CheckURL(driver):
     pattern = r'\d+'
@@ -27,47 +31,39 @@ def CheckURL(driver):
             driver.get(url)
             url = driver.current_url
             if driver.current_url == url:
-                print('이 주소가 맞습니다.')
+                print(f'성공! 주소는 {url}입니다.')
                 break
         except Exception as e:
-            print('도메인 주소 변경 중..')
+            print(f'도메인 주소 변경 중..\n{e}')
             number += 1
             url = url[:a.start()] + str(number) + url[a.end():]
     mark['도메인'] = url
     mark.to_csv('src/Mark.csv', index=False)
     return url
 
+
 import requests
 from bs4 import BeautifulSoup
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
-webtoon_name = []
-webtoon_genre = []
-webtoon_week = []
-webtoon_img = []
-webtoon_num = []
-webtoon_reply = []
-webtoon_star1 = []
-webtoon_star2 = []
-webtoon_recommend = []
-webtoon_plot = []
-webtoon_update = []
 
-def PageCrawling(url,week):
-    response = requests.get(url,headers={'User-agent':user_agent})
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
+
+
+
+def PageCrawling(url, week, toon_name, toon_genre, toon_week):
+    response = requests.get(url, headers={'User-agent': user_agent})
     html = response.text
     soup = BeautifulSoup(html, 'html.parser')
     if week == '열흘':
         webtoon_list = soup.find_all('li', {'data-weekday': week})
     else:
-        webtoon_list = soup.find_all('li', {'data-weekday': week+'요일'})
+        webtoon_list = soup.find_all('li', {'data-weekday': week + '요일'})
     for i, webtoon in enumerate(webtoon_list):
-        ### TEST ####
+        # TEST ####
         # if i == 5:
         #     break
-        ### TEST ####
-        webtoon_name.append(webtoon['date-title'])
-        webtoon_genre.append(webtoon['data-genre'])
-        webtoon_week.append(week)
+        toon_name.append(webtoon['date-title'])
+        toon_genre.append(webtoon['data-genre'])
+        toon_week.append(week)
     # print(webtoon_name,webtoon_genre,webtoon_week)
     # name_dic = {'이름':webtoon_name}
     # genre_dic = {'장르':webtoon_genre}
@@ -76,31 +72,42 @@ def PageCrawling(url,week):
 
     # print(merged_df)
     # return merged_df, webtoon_name
-    return webtoon_name, webtoon_genre, webtoon_week
+    return toon_name, toon_genre, toon_week
+
 
 from selenium.webdriver.common.by import By
 
+
 def AllCrawling(url, driver):
-    #### TEST ####
-    # weeks=['열흘','월']
-    #### TEST ####
+    # TEST ####
+    # weeks=['월']
     flag = 0
     weeks = ['월', '화', '수', '목', '금', '토', '일', '열흘']
     df = pd.read_csv('src/WebtoonInfo.csv')
-    stack_num = 0
+    driver.get(url)
+    driver.maximize_window()
+    cookie = Login(driver)
+    driver.find_element(By.XPATH,'//*[@id="hd_pops_2"]/div[2]/button[1]').click()
+    driver.find_element(By.XPATH,'//*[@id="navbar-collapse"]/ul/li[1]/a').click()
+
+    # 일주일을 볼껀데
     for week in weeks:
         print(week + '요일 웹툰 크롤링')
-        week_url = url + '&yoil=' + str(week) + '&jaum=&tag=&sst=as_update&sod=desc&stx='
-        driver.get(week_url)
-        response = requests.get(week_url, headers={'User-agent': user_agent})
+        # week_url = url + '&yoil=' + str(week) + '&jaum=&tag=&sst=as_update&sod=desc&stx='
+        # response = requests.get(week_url, headers={'User-agent': user_agent})
+        WebDriverWait(driver,2)
+        driver.find_element(By.CSS_SELECTOR,f'span[data-value="{week}"]').click()
+        driver.find_element(By.XPATH,'//*[@id="content_wrapper"]/div[2]/div/section/div[1]/form/table/tbody/tr[1]/td[2]/button').click()
+        WebDriverWait(driver, 2)
+        response = requests.get(driver.current_url, headers={'User-agent': user_agent})
+        print(driver.current_url)
         html = response.text
         soup = BeautifulSoup(html, 'html.parser')
-        pages = soup.find_all('div', {'class': 'list-page'})
+        pages = soup.find('div', {'class': 'list-page'}).select('ul > li')
 
-        for page in pages:
-            p = page.select('ul > li')
-
-        for i in range(len(p) - 4):
+        # 각 요일마다 페이지를 클릭하면서 볼꺼다
+        for i in range(len(pages) - 4):
+            # 전역변수를 매번 초기화 하자
             webtoon_name = []
             webtoon_genre = []
             webtoon_week = []
@@ -114,101 +121,100 @@ def AllCrawling(url, driver):
             webtoon_update = []
             if i != 0:
                 print(f"{week}요일 {i + 1} page")
-                driver.find_element(By.XPATH, '//*[@id="fboardlist"]/div[4]/ul/li[%d]/a' % (i + 3)).click()
+                driver.find_element(By.XPATH, f'//*[@id="fboardlist"]/div[4]/ul/li[{i + 3}]/a').click()
                 time.sleep(0.5)
-                week_url = driver.current_url
+                # week_url = driver.current_url
             else:
                 print(f"{week}요일 Crawling Start")
-            # name_genre_week, webtoon_name = PageCrawling(week_url, week)
-            webtoon_name,webtoon_genre,webtoon_week = PageCrawling(week_url, week)
+                print(f"{week}요일 1 page")
+            webtoon_name, webtoon_genre, webtoon_week = PageCrawling(driver.current_url, week, webtoon_name, webtoon_genre,
+                                                                     webtoon_week)
             webtoons = driver.find_elements(By.XPATH, '//*[@id="webtoon-list-all"]/li')
-            ### TEST ####
+            
+            # 현재 페이지의 웹툰들의 상세페이지에 다 들어감
+            # TEST ####
+            print(webtoon_name)
             # for j in tqdm(range(5)):
-            ### TEST ####
             for j in tqdm(range(len(webtoons))):
                 try:
                     WebDriverWait(driver, 5)
-                    href = driver.find_element(By.XPATH,f'//*[@id="webtoon-list-all"]/li[{j+1}]/div/div/div/div[1]/div/div/a')
-                    # print(href)
+                    href = driver.find_element(By.XPATH,
+                                               f'//*[@id="webtoon-list-all"]/li[{j + 1}]/div/div/div/div[1]/div/div/a')
                     href.click()
                 except:
                     WebDriverWait(driver, 5)
-                    href2 = driver.find_element(By.XPATH,f'//*[@id="webtoon-list-all"]/li[{j+1}]/div[2]/div/div/div[1]/div/div/a')
+                    href2 = driver.find_element(By.XPATH,
+                                                f'//*[@id="webtoon-list-all"]/li[{j + 1}]/div[2]/div/div/div[1]/div/div/a')
                     href2.click()
+
+                # 최초 클릭 (캡챠 진행)
                 if flag == 0:
-                    cookie = captcha2(driver)
                     WebDriverWait(driver, 2)
                     flag = 1
                     webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update = DetailCrawling2(
-                        ### TEST ###
-                        # webtoon_name[5 * i + j + stack_num], driver.current_url, cookie)
-                        ### TEST ###
-                        webtoon_name[96 * i + j + stack_num], driver.current_url, cookie)
+                        # TEST ####
+                        webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
+                        # webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
+                    driver.back()
+                    time.sleep(1)
+                    WebDriverWait(driver, 2)
 
-                    driver.back()
-                    WebDriverWait(driver, 2)
-                    driver.back()
-                    WebDriverWait(driver, 2)
                 else:
                     webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update = DetailCrawling2(
-                        ### TEST ###
-                        # webtoon_name[5*i+j + stack_num], driver.current_url, cookie)
-                        ### TEST ###
-                        webtoon_name[96 * i + j + stack_num], driver.current_url, cookie)
-
+                        # TEST ####
+                        webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
+                        # webtoon_name[96*i + j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
                     driver.back()
+                    time.sleep(1)
                     WebDriverWait(driver, 2)
             # df = pd.concat([df, name_genre_week], ignore_index=True)
-        ## (4/8) 월 : 746 화 : 712 수 : 743 목 : 759 금 : 858 토 : 665 일 : 641 열흘 : 116 == 5240개
-        ## !!만약 크롤링 중에 업데이트가 된다면?
-        ## ~~다시 처음부터 크롤링하기로 하자 (4/8) < 아직 구현안함
-        # name_dic = {'이름':webtoon_name}
-        # genre_dic = {'장르':webtoon_genre}
-        # week_dic = {'요일':webtoon_week}
-        # img_dic = {'이미지': webtoon_img}
-        # num_dic = {'총화수': webtoon_num}
-        # reply_dic = {'댓글': webtoon_reply}
-        # star1_dic = {'별점(화)': webtoon_star1}
-        # star2_dic = {'별점(총)': webtoon_star2}
-        # recommend_dic = {'추천수': webtoon_recommend}
-        # plot_dic = {'줄거리': webtoon_plot}
-        # update_dic = {'업데이트' : webtoon_update}
-        # merged_df = pd.concat(
-        #     [pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic), pd.DataFrame(img_dic), pd.DataFrame(num_dic), pd.DataFrame(reply_dic),
-        #     pd.DataFrame(star1_dic), pd.DataFrame(star2_dic), pd.DataFrame(recommend_dic),pd.DataFrame(plot_dic), pd.DataFrame(update_dic)],axis=1)
+            # (4/8) 월 : 746 화 : 712 수 : 743 목 : 759 금 : 858 토 : 665 일 : 641 열흘 : 116 == 5240개
+            # !!만약 크롤링 중에 업데이트가 된다면?
+            # ~~다시 처음부터 크롤링하기로 하자 (4/8) < 아직 구현안함
+            # name_dic = {'이름':webtoon_name}
+            # genre_dic = {'장르':webtoon_genre}
+            # week_dic = {'요일':webtoon_week}
+            # img_dic = {'이미지': webtoon_img}
+            # num_dic = {'총화수': webtoon_num}
+            # reply_dic = {'댓글': webtoon_reply}
+            # star1_dic = {'별점(화)': webtoon_star1}
+            # star2_dic = {'별점(총)': webtoon_star2}
+            # recommend_dic = {'추천수': webtoon_recommend}
+            # plot_dic = {'줄거리': webtoon_plot}
+            # update_dic = {'업데이트' : webtoon_update}
+            # merged_df = pd.concat(
+            #     [pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic), 
+            #     pd.DataFrame(img_dic), pd.DataFrame(num_dic), pd.DataFrame(reply_dic),
+            #     pd.DataFrame(star1_dic), pd.DataFrame(star2_dic), pd.DataFrame(recommend_dic),
+            #     pd.DataFrame(plot_dic), pd.DataFrame(update_dic)],axis=1)
 
             merged_df2 = pd.DataFrame()
-            print(webtoon_name)
+            print(f'이름 : {len(webtoon_name)}, 장르 : {len(webtoon_genre)},요일 : {len(webtoon_week)}, '
+                  f'이미지 : {len(webtoon_img)}, 총화수 : {len(webtoon_week)}, 댓글 : {len(webtoon_reply)}, '
+                  f'별점화 : {len(webtoon_star1)}, 별점총 : {len(webtoon_star2)}, 추천수 : {len(webtoon_recommend)}, '
+                  f'줄거리 : {len(webtoon_plot)}, 업데이트 : {len(webtoon_update)}')
             merged_df2['이름'] = webtoon_name
-            print(webtoon_genre)
             merged_df2['장르'] = webtoon_genre
-            print(webtoon_week)
             merged_df2['요일'] = webtoon_week
-            print(webtoon_img)
             merged_df2['이미지'] = webtoon_img
-            print(webtoon_week)
             merged_df2['총화수'] = webtoon_num
-            print(webtoon_reply)
             merged_df2['댓글'] = webtoon_reply
-            print(webtoon_star1 , len(webtoon_star1))
             merged_df2['별점(화)'] = webtoon_star1
-            print(webtoon_star2)
             merged_df2['별점(총)'] = webtoon_star2
-            print(webtoon_recommend)
             merged_df2['추천수'] = webtoon_recommend
-            print(webtoon_plot)
             merged_df2['줄거리'] = webtoon_plot
-            print(webtoon_update)
-            merged_df2['업데이트'] =webtoon_update
-            # print(f'M1 = {merged_df}')
-            # print(f'M2 = {merged_df2}')
-            df = pd.concat([df,merged_df2],ignore_index=True)
+            merged_df2['업데이트'] = webtoon_update
+            print(merged_df2)
+            df = pd.concat([df, merged_df2], ignore_index=True)
             df.to_csv('src/WebtoonInfo.csv', index=False)
-        stack_num += len(df)
-            # print(f'DF = {df}')
+            print(f'{week}요일 Page {i+1} 끝')
+        # Test ####
+        # stack_num += len(df)
+        # print(f'df = {df}')
         print(f'{week}요일 웹툰 크롤링 끝')
 
     return df
+
 
 import shutil
 import pyautogui
@@ -216,7 +222,8 @@ from selenium.webdriver.common.keys import Keys
 import matplotlib.pyplot as mat_plt
 import matplotlib.image as mat_img
 import pyperclip
-import threading
+# import threading
+
 
 def captcha2(driver):
     time.sleep(0.5)
@@ -224,7 +231,7 @@ def captcha2(driver):
     captcha_img = driver.get_screenshot_as_png()
     open('src/file/captcha.png', 'wb').write(captcha_img)
     a = mat_img.imread('src/file/captcha.png')
-    mat_plt.imshow(a[385:425, 535:605])
+    mat_plt.imshow(a[555:585, 860:930])
     mat_plt.show()
     # driver.minimize_window()
 
@@ -242,11 +249,23 @@ def captcha2(driver):
         cookies = {c['name']: c['value']}
     return cookies
 
-def DetailCrawling2(name,url,cookie):
-    ## 매 사이트를 접속할 때마다 세션을 새로 설정해야함
-    ## 세션을 독립적으로 운용하여 요청간 상태가 분리되고 서로 영향을 미치지 않음
-    print("=============================================================================")
-    print(f"{name} Detail Crawling Start!")
+def Login(driver):
+    id = 'zxcvcxz'
+    pw = 'zxcv  '
+    driver.find_element(By.XPATH, '//*[@id="basic_outlogin"]/div[1]/button').click()
+    id_field = driver.find_element(By.XPATH,'//*[@id="login_id"]')
+    pw_field = driver.find_element(By.XPATH,'// *[ @ id = "login_pw"]')
+    id_field.send_keys(id)
+    pw_field.send_keys(pw)
+    cookies = captcha2(driver)
+    # driver.find_element(By.XPATH,'//*[@id="content_wrapper"]/div[2]/div/div[2]/div/div/div[2]/form/div[4]/div[2]/button').click()
+    return cookies
+
+def DetailCrawling2(name, url,cookie,driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot):
+    # 매 사이트를 접속할 때마다 세션을 새로 설정해야함
+    # 세션을 독립적으로 운용하여 요청간 상태가 분리되고 서로 영향을 미치지 않음
+    # print("=============================================================================")
+    print(f"\n{name} Detail Crawling Start!")
     session = requests.Session()
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
@@ -255,18 +274,18 @@ def DetailCrawling2(name,url,cookie):
     session.cookies.update(cookie)
     response = session.get(url, headers={'User-agent': user_agent})
     html = response.text
-    # print(html)
-    soup = BeautifulSoup(html,'html.parser')
+    soup = BeautifulSoup(html, 'html.parser')
+    update_flag = 0
 
-    # ## 이름(str)
+    # # 이름(str)
     # try:
     #     webtoon_name.append(name)
     # except Exception as e:
     #     print(f"Error at Name\n{e}")
     #     webtoon_name.append("None")
 
-    ## 이미지(다운로드)
-    webtoon_name_strip = re.sub(r'[^\w\s]+|\s+','',name)
+    # 이미지(다운로드)
+    webtoon_name_strip = re.sub(r'[^\w\s]+|\s+', '', name)
     try:
         images = soup.find('div', {'class': 'view-img'})
         image = images.find('img').attrs['src']
@@ -281,7 +300,7 @@ def DetailCrawling2(name,url,cookie):
         shutil.copyfile(temp_img, img)
         webtoon_img.append(f'src/img/{webtoon_name_strip}.png')
 
-    ## 총화수(int)
+    # 총화수(int)
     try:
         nums = len(soup.find_all('li', {'class': 'list-item'}))
         webtoon_num.append(nums)
@@ -290,96 +309,128 @@ def DetailCrawling2(name,url,cookie):
         nums = 0
         webtoon_num.append(nums)
 
-    ## 댓글(list)
+    # 댓글(list)
+    # 전체          ( div id='viewcomment' )
+    # 최고 추천 댓글 ( > section id='bo_vcb' )
+    # 일반 댓글     ( > section id='bo_vc' )
+    # 페이지        ( > div class=text-center > ul > li )
+
+    # 일반 댓글 별점 있는걸로 다가만 크롤링
+    # 파싱(\n, 맨끝 공백)
+    # 리스트식으로 입력하지말고 어차피 str로 바뀌니까 나중에 파싱하게 좋게 점수1,배댓글1,점수2,배댓글2/점수1,댓글1,점수2,댓글2 << 이런식으로 받자
     try:
-        webtoon_reply_list = ['a','b','c']
-        webtoon_reply.append(webtoon_reply_list)
+        reply_flag = 0
+        reply_section = soup.find('div', {'id': 'viewcomment'})
+        best_replys_list = reply_section.find('section', {'id': 'bo_vcb'})
+        best_replys = best_replys_list.find_all('div', {'class': 'media-content'})
+        best_replys_stars = best_replys_list.find_all('div', {'class': 'media-heading'})
+
+        star_reply = ""
+        for br, brs in zip(best_replys, best_replys_stars):
+            b_star = len(brs.find_all('i', {'class': 'fa fa-star fa-lg crimson'}))
+            if b_star >= 1:
+                b_reply = re.sub(r'[\r\n]+','',br.text.strip())
+                star_reply = ''.join([star_reply,str(b_star),b_reply])+"|"
+
+        replys_list = reply_section.find('section', {'id': 'bo_vc'})
+        replys = replys_list.find_all('div', {'class': 'media-content'})
+        replys_stars = replys_list.find_all('div', {'class': 'media-heading'})
+        for r, rs in zip(replys, replys_stars):
+            star = len(rs.find_all('i', {'class': 'fa fa-star fa-lg crimson'}))
+            if star >= 1:
+                reply = re.sub(r'[\r\n]+','',r.text.strip())
+                star_reply = ''.join([star_reply + '|' + str(star), reply])
+        reply_flag = 1
+
+        reply_pages = reply_section.find('div',{'class':'text-center'}).select('ul > li')
+        for rp in range(len(reply_pages)-5):
+            # 다음페이지 클릭
+            driver.find_element(By.XPATH, f'//*[@id="viewcomment"]/div[2]/ul/li[{rp+2}]/a').click()
+            reply_response = session.get(driver.current_url, headers={'User-agent': user_agent})
+            reply_html = reply_response.text
+            reply_soup = BeautifulSoup(reply_html, 'html.parser')
+
+            reply_section = reply_soup.find('div', {'id': 'viewcomment'})
+            replys_list = reply_section.find('section', {'id': 'bo_vc'})
+            replys_star = replys_list.find_all('div', {'class': 'media-heading'})
+            replys = replys_list.find_all('div', {'class': 'media-content'})
+
+            for r, rs in zip(replys, replys_star):
+                star = len(rs.find_all('i', {'class': 'fa fa-star fa-lg crimson'}))
+                if star >= 1:
+                    reply = re.sub(r'[\r\n]+', '', r.text.strip())
+                    star_reply = ''.join([star_reply+'|'+str(star), reply])
+
+        webtoon_reply.append(star_reply)
     except Exception as e:
         print(f"Error at Reply\n{e}")
-        print(soup)
-        webtoon_reply.append([])
+        if reply_flag:
+            webtoon_reply.append(star_reply)
+        else:
+            webtoon_reply.append('')
 
-    ## 별점(화수)(list)
-    ## !!최고 추천을 가진 화수 > 최고의 화를 찾아라
-    ## ~~
-    ## !!마지막날짜 - 처음업데이트날짜 / 7(10) = 총화수 >> 매주 꾸준히 업데이트
-    ## !! > 총화수 >> 업데이트가 늦다
-    ## !! < 총화수 >> 한번에 화수를 많이 올렸음       >> 두 개에 대해 인기도는 낮을 것이다.(비정기적 업데이트)
-    ## !! 한번에 화수를 많이 올렸는데 업데이트도 늦어? 그럼 그냥 아웃
+    # 별점(화수)(list)
+    # !!최고 추천을 가진 화수 > 최고의 화를 찾아라
+    # ~~
+    # !!마지막날짜 - 처음업데이트날짜 / 7(10) = 총화수 >> 매주 꾸준히 업데이트
+    # !! > 총화수 >> 업데이트가 늦다
+    # !! < 총화수 >> 한번에 화수를 많이 올렸음       >> 두 개에 대해 인기도는 낮을 것이다.(비정기적 업데이트)
+    # !! 한번에 화수를 많이 올렸는데 업데이트도 늦어? 그럼 그냥 아웃
     try:
         star1_temp = []
-        update_temp = []
-        try:
-            star1_lists = soup.find_all('div',{'class':'serial-list'})
-        except:
-            print("Appending star1 []..")
-            star1_lists = []
-        for star1_list in star1_lists:
-            star1s = star1_list.select('ul > li')
-
-        star1_recommend_temp = []
-        for index, star1 in enumerate(star1s):
-            try:
-                if index == 0:
-                    star1_first_date = star1.find('div', {'class': 'wr-date'}).text.strip()
-                if index == len(star1s)-1:
-                    star1_last_date = star1.find('div', {'class': 'wr-date'}).text.strip()
-            except:
-                star1_first_date = ['1900-01-01']
-                star1_last_date = ['1900-01-01']
-            try:
-                star1_rating = star1.find('div', {'class':'wr-star'}).text.strip().split('(')[-1].split(')')[0]
-                # star1_recommend = star1.find('div', {'class':'wr-good'}).text.strip()
-                # star1_recommend_temp.append(int(star1_recommend))
-            except:
-                star1_rating = 0
+        star1_lists = soup.find('div', {'class': 'serial-list'}).select('ul > li')
+        for index, star1 in enumerate(star1_lists):
+            if index == 0:
+                star1_first_date = star1.find('div', {'class': 'wr-date'}).text.strip()
+            if index == len(star1_lists) - 1:
+                star1_last_date = star1.find('div', {'class': 'wr-date'}).text.strip()
+            star1_rating = star1.find('div', {'class': 'wr-star'}).text.strip().split('(')[-1].split(')')[0]
             star1_temp.append(float(star1_rating))
         star1_temp.sort(reverse=True)
-        webtoon_star1.append(star1_temp)
-        update_temp.append(pd.to_datetime(star1_first_date))
-        update_temp.append(pd.to_datetime(star1_last_date))
-        update_temp.sort(reverse=True)
-        webtoon_update.append(update_temp)
+        star1 = ','.join(map(str,star1_temp))
+        webtoon_star1.append(star1)
+
+        update = ','.join([star1_first_date,star1_last_date])
+        print(update)
+        webtoon_update.append(update)
     except Exception as e:
         print(f"Error at Star1\n{e}")
-        # 에러 위치에 따라
-        update_temp = []
-        print("Appending update []..")
-        webtoon_update.append(update_temp)
+        if update_flag == 0:
+            webtoon_update.append('')
+        # print("Appending update []..")
+        # webtoon_update.append(update)
         # print(webtoon_update)
 
-    ## 별점(총)(float)
+    # 별점(총)(float)
     try:
         # full_star2 = soup.select('button.btn-white > i.fa-star')
         # half_star2 = soup.select('button.btn-white > i.fa-star-half-empty')
         # webtoon_star2.append(len(full_star2) + (len(half_star2) * 0.5))
-        star2_temp = []
-        star2_lists = soup.find('div',{'class':'view-comment'}).text.strip().split()
-        star2_rating = float(star2_lists[2])
-        star2_count = int(star2_lists[-1])
-        star2_temp.append(star2_rating)
-        star2_temp.append(star2_count)
-        webtoon_star2.append(star2_temp)
+        star2_lists = soup.find('div', {'class': 'view-comment'}).text.strip().split()
+        star2_rating = star2_lists[2]
+        star2_count = star2_lists[-1]
+        star2 = ','.join([star2_rating,star2_count])
+        webtoon_star2.append(star2)
     except Exception as e:
         print(f"Error at Star2\n{e}")
-        print("Appending star2 []..")
-        webtoon_star2.append([])
+        # webtoon_star2.append(star2_temp)
 
-    ## 추천수(int)
+    # 추천수(int)
     try:
         webtoon_recommend_temp = str(soup.find('b', {'id': 'wr_good'}).text)
         webtoon_recommend.append(int(webtoon_recommend_temp.replace(",", "")))
     except Exception as e:
         print(f"Error at Recommend\n{e}")
         print("Appending recommend 0..")
-        webtoon_recommend.append(0)
+        # webtoon_recommend.append(0)
 
-    ## 줄거리
+    # 줄거리
     try:
-        plot = soup.find('div',{'class':'col-sm-8'}).find_all('div')[1].text.strip()
+        plot = soup.find('div', {'class': 'col-sm-8'}).find_all('div')[1].text.strip()
         webtoon_plot.append(plot)
     except Exception as e:
         print(f"Error at Recommend\n{e}")
         print("Appending recommend \"\"")
-        webtoon_plot.append("")
-    return webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2,webtoon_recommend,webtoon_plot,webtoon_update
+        # webtoon_plot.append("")
+
+    return webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update

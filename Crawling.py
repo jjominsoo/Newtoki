@@ -23,9 +23,9 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 ## 모든 웹툰 데이터를 크롤링한다.
 ## 만약 중간에 멈출 수도 있으므로 index를 일단 정해두자.
 ## 나중에 Update.py에서 활용할 수 도 있다.
-## WebtoonInfo.csv   : 모든 웹툰들을 정리한 csv파일
+## WebtoonInfo_proto.csv   : 모든 웹툰들을 정리한 csv파일
 ## Mark.csv          : 마지막으로 업데이트한 웹툰 이름을 저장한 csv파일 > 자주 변동되는 url주소를 확인하기 위해 쓰일 것임
-# func.InitCSV()
+func.InitCSV()
 
 ## 비정기적으로 바뀌는 도메인 주소
 ## 마지막으로 접속 가능했던 도메인 주소에 1씩 더해가면서 접속 가능한 주소를 찾음
@@ -44,7 +44,7 @@ df = func.AllCrawling(url,driver)
 ## 상세 크롤링
 ## 상세는 업데이트에도 필요하므로 중복을 찾는 것이 중요
 ## 이미지, 총화수, 댓글, 별점(화수) 마지막업데이트날짜 << 없는 경우가 있으니 예외처리를 해야함
-df = pd.read_csv('src/WebtoonInfo.csv')
+# df = pd.read_csv('src/WebtoonInfo_proto.csv')
 # print(df)
 # count = 0
 # for name, url in zip(df['이름'],df['상세']):
