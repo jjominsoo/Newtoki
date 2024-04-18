@@ -1,103 +1,37 @@
+import Captcha
+import Crawling
+
 import re
 import pandas as pd
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from tqdm import tqdm
 
-
-# Web toonInfo.csv   : 모든 웹툰들을 정리한 csv파일
-# Mark.csv          : 마지막으로 업데이트한 웹툰 이름을 저장한 csv파일 > 자주 변동되는 url주소를 확인하기 위해 쓰일 것임
-
-def InitCSV():
-    df = pd.DataFrame(columns=['이름', '작가/그림', '장르', '요일', '추천수', '별점(총)', '별점(화)', '총화수',
-                               '댓글', '줄거리', '이미지', '플랫폼', '링크', '업데이트'])
-    df.to_csv('src/WebtoonInfo.csv', index=False)
-    init_mark = {'이름': '', '순서': 0, '도메인': 'https://newtoki328.com/'}
-    mark_index = [0]
-    mark = pd.DataFrame(init_mark, index=mark_index)
-    mark.to_csv('src/Mark.csv', index=False)
-
-
-def CheckURL(driver):
-    pattern = r'\d+'
-    mark = pd.read_csv('src/Mark.csv')
-    url = mark['도메인'][0]
-    a = re.search(pattern, url)
-    number = int(a.group())
-
-    for i in range(100):
-        try:
-            driver.implicitly_wait(10)
-            driver.get(url)
-            url = driver.current_url
-            if driver.current_url == url:
-                print(f'성공! 주소는 {url}입니다.')
-                break
-        except Exception as e:
-            print(f'도메인 주소 변경 중..\n{e}')
-            number += 1
-            url = url[:a.start()] + str(number) + url[a.end():]
-    mark['도메인'] = url
-    mark.to_csv('src/Mark.csv', index=False)
-    return url
-
-
 import requests
 from bs4 import BeautifulSoup
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
 
-
-
-def PageCrawling(url, week, toon_name, toon_genre, toon_week):
-    response = requests.get(url, headers={'User-agent': user_agent})
-    html = response.text
-    soup = BeautifulSoup(html, 'html.parser')
-    if week == '열흘':
-        webtoon_list = soup.find_all('li', {'data-weekday': week})
-    else:
-        webtoon_list = soup.find_all('li', {'data-weekday': week + '요일'})
-    for i, webtoon in enumerate(webtoon_list):
-        # TEST ####
-        # if i == 5:
-        #     break
-        toon_name.append(webtoon['date-title'])
-        toon_genre.append(webtoon['data-genre'])
-        toon_week.append(week)
-    # print(webtoon_name,webtoon_genre,webtoon_week)
-    # name_dic = {'이름':webtoon_name}
-    # genre_dic = {'장르':webtoon_genre}
-    # week_dic = {'요일':webtoon_week}
-    # merged_df = pd.concat([pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic)], axis=1)
-
-    # print(merged_df)
-    # return merged_df, webtoon_name
-    return toon_name, toon_genre, toon_week
-
-
-from selenium.webdriver.common.by import By
-
-
 def AllCrawling(url, driver):
     # TEST ####
-    # weeks=['월']
+    weeks=['화', '수', '목', '금', '토', '일', '열흘']
     flag = 0
-    weeks = ['월', '화', '수', '목', '금', '토', '일', '열흘']
+    # weeks = ['월', '화', '수', '목', '금', '토', '일', '열흘']
     df = pd.read_csv('src/WebtoonInfo.csv')
     driver.get(url)
     driver.maximize_window()
-    cookie = Login(driver)
-    driver.find_element(By.XPATH,'//*[@id="hd_pops_2"]/div[2]/button[1]').click()
-    driver.find_element(By.XPATH,'//*[@id="navbar-collapse"]/ul/li[1]/a').click()
+    cookie = Captcha.Login(driver)
+
 
     # 일주일을 볼껀데
     for week in weeks:
         print(week + '요일 웹툰 크롤링')
         # week_url = url + '&yoil=' + str(week) + '&jaum=&tag=&sst=as_update&sod=desc&stx='
         # response = requests.get(week_url, headers={'User-agent': user_agent})
-        WebDriverWait(driver,2)
-        driver.find_element(By.CSS_SELECTOR,f'span[data-value="{week}"]').click()
-        driver.find_element(By.XPATH,'//*[@id="content_wrapper"]/div[2]/div/section/div[1]/form/table/tbody/tr[1]/td[2]/button').click()
+        WebDriverWait(driver, 2)
+        driver.find_element(By.CSS_SELECTOR, f'span[data-value="{week}"]').click()
+        driver.find_element(By.XPATH,
+                            '//*[@id="content_wrapper"]/div[2]/div/section/div[1]/form/table/tbody/tr[1]/td[2]/button').click()
         WebDriverWait(driver, 2)
         response = requests.get(driver.current_url, headers={'User-agent': user_agent})
         print(driver.current_url)
@@ -127,10 +61,11 @@ def AllCrawling(url, driver):
             else:
                 print(f"{week}요일 Crawling Start")
                 print(f"{week}요일 1 page")
-            webtoon_name, webtoon_genre, webtoon_week = PageCrawling(driver.current_url, week, webtoon_name, webtoon_genre,
+            webtoon_name, webtoon_genre, webtoon_week = PageCrawling(driver.current_url, week, webtoon_name,
+                                                                     webtoon_genre,
                                                                      webtoon_week)
             webtoons = driver.find_elements(By.XPATH, '//*[@id="webtoon-list-all"]/li')
-            
+
             # 현재 페이지의 웹툰들의 상세페이지에 다 들어감
             # TEST ####
             print(webtoon_name)
@@ -153,8 +88,9 @@ def AllCrawling(url, driver):
                     flag = 1
                     webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update = DetailCrawling2(
                         # TEST ####
-                        webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
-                        # webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
+                        webtoon_name[j], driver.current_url, cookie, driver, webtoon_img, webtoon_num, webtoon_reply,
+                        webtoon_star1, webtoon_star2, webtoon_update, webtoon_recommend, webtoon_plot)
+                    # webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
                     driver.back()
                     time.sleep(1)
                     WebDriverWait(driver, 2)
@@ -162,8 +98,9 @@ def AllCrawling(url, driver):
                 else:
                     webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update = DetailCrawling2(
                         # TEST ####
-                        webtoon_name[j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
-                        # webtoon_name[96*i + j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
+                        webtoon_name[j], driver.current_url, cookie, driver, webtoon_img, webtoon_num, webtoon_reply,
+                        webtoon_star1, webtoon_star2, webtoon_update, webtoon_recommend, webtoon_plot)
+                    # webtoon_name[96*i + j], driver.current_url, cookie, driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot)
                     driver.back()
                     time.sleep(1)
                     WebDriverWait(driver, 2)
@@ -183,7 +120,7 @@ def AllCrawling(url, driver):
             # plot_dic = {'줄거리': webtoon_plot}
             # update_dic = {'업데이트' : webtoon_update}
             # merged_df = pd.concat(
-            #     [pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic), 
+            #     [pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic),
             #     pd.DataFrame(img_dic), pd.DataFrame(num_dic), pd.DataFrame(reply_dic),
             #     pd.DataFrame(star1_dic), pd.DataFrame(star2_dic), pd.DataFrame(recommend_dic),
             #     pd.DataFrame(plot_dic), pd.DataFrame(update_dic)],axis=1)
@@ -207,7 +144,8 @@ def AllCrawling(url, driver):
             print(merged_df2)
             df = pd.concat([df, merged_df2], ignore_index=True)
             df.to_csv('src/WebtoonInfo.csv', index=False)
-            print(f'{week}요일 Page {i+1} 끝')
+            print(f'{week}요일 Page {i + 1} 끝')
+            driver.back()
         # Test ####
         # stack_num += len(df)
         # print(f'df = {df}')
@@ -216,50 +154,34 @@ def AllCrawling(url, driver):
     return df
 
 
+def PageCrawling(url, week, toon_name, toon_genre, toon_week):
+    response = requests.get(url, headers={'User-agent': user_agent})
+    html = response.text
+    soup = BeautifulSoup(html, 'html.parser')
+    if week == '열흘':
+        webtoon_list = soup.find_all('li', {'data-weekday': week})
+    else:
+        webtoon_list = soup.find_all('li', {'data-weekday': week + '요일'})
+    for i, webtoon in enumerate(webtoon_list):
+        # TEST ####
+        # if i == 5:
+        #     break
+        toon_name.append(webtoon['date-title'])
+        toon_genre.append(webtoon['data-genre'])
+        toon_week.append(week)
+    # print(webtoon_name,webtoon_genre,webtoon_week)
+    # name_dic = {'이름':webtoon_name}
+    # genre_dic = {'장르':webtoon_genre}
+    # week_dic = {'요일':webtoon_week}
+    # merged_df = pd.concat([pd.DataFrame(name_dic), pd.DataFrame(genre_dic), pd.DataFrame(week_dic)], axis=1)
+
+    # print(merged_df)
+    # return merged_df, webtoon_name
+    return toon_name, toon_genre, toon_week
+
+
+from selenium.webdriver.common.by import By
 import shutil
-import pyautogui
-from selenium.webdriver.common.keys import Keys
-import matplotlib.pyplot as mat_plt
-import matplotlib.image as mat_img
-import pyperclip
-# import threading
-
-
-def captcha2(driver):
-    time.sleep(0.5)
-    driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
-    captcha_img = driver.get_screenshot_as_png()
-    open('src/file/captcha.png', 'wb').write(captcha_img)
-    a = mat_img.imread('src/file/captcha.png')
-    mat_plt.imshow(a[555:585, 860:930])
-    mat_plt.show()
-    # driver.minimize_window()
-
-    # !! plt랑 pyautogui 동시에 나오게 하는법 없나?
-    # !! 아님 plt에서 입력받는 법 없나?
-    # ~~ Prac.py 활용해보자 < 아직 안함
-    captcha_num = pyautogui.prompt("Captcha 입력 >> ")
-    captcha_key = driver.find_element(By.ID, 'captcha_key')
-    captcha_key.click()
-    pyperclip.copy(captcha_num)
-    captcha_key.send_keys(Keys.CONTROL, 'v')
-    driver.find_element(By.CLASS_NAME, 'btn-color').click()
-
-    for c in driver.get_cookies():
-        cookies = {c['name']: c['value']}
-    return cookies
-
-def Login(driver):
-    id = 'zxcvcxz'
-    pw = 'zxcv  '
-    driver.find_element(By.XPATH, '//*[@id="basic_outlogin"]/div[1]/button').click()
-    id_field = driver.find_element(By.XPATH,'//*[@id="login_id"]')
-    pw_field = driver.find_element(By.XPATH,'// *[ @ id = "login_pw"]')
-    id_field.send_keys(id)
-    pw_field.send_keys(pw)
-    cookies = captcha2(driver)
-    # driver.find_element(By.XPATH,'//*[@id="content_wrapper"]/div[2]/div/div[2]/div/div/div[2]/form/div[4]/div[2]/button').click()
-    return cookies
 
 def DetailCrawling2(name, url,cookie,driver,webtoon_img,webtoon_num,webtoon_reply,webtoon_star1,webtoon_star2,webtoon_update,webtoon_recommend,webtoon_plot):
     # 매 사이트를 접속할 때마다 세션을 새로 설정해야함
@@ -429,7 +351,7 @@ def DetailCrawling2(name, url,cookie,driver,webtoon_img,webtoon_num,webtoon_repl
         plot = soup.find('div', {'class': 'col-sm-8'}).find_all('div')[1].text.strip()
         webtoon_plot.append(plot)
     except Exception as e:
-        print(f"Error at Recommend\n{e}")
+        print(f"Error at \n{e}")
         print("Appending recommend \"\"")
         # webtoon_plot.append("")
 
