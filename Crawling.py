@@ -292,11 +292,11 @@ def SearchGoogleCrawling(driver):
             for j in range(0, 5, 2):
                 # 플랫폼 종류 확인
                 if a[j].text == 'kakao.com' or a[j].text == "kakaocorp.com":
-                    temp_nft = '카카오웹툰'
+                    temp_nft = '카카오'
                 elif a[j].text == 'Naver':
-                    temp_nft = '네이버웹툰'
+                    temp_nft = '네이버'
                 elif a[j].text == 'Lezhin Comics':
-                    temp_nft = '레진코믹스'
+                    temp_nft = '레진'
                 else:
                     temp_nft = a[j].text
                 if temp_nft not in platform:
@@ -309,31 +309,75 @@ def SearchGoogleCrawling(driver):
             print(f'{e}')
             k = input('')
         driver.find_element(By.XPATH, '//*[@id="APjFqb"]').clear()
+import sys
+import pprint
 
-def SearchHomepageCrawling(driver):
+def KakaoCrawling(driver):
     ## 성인 웹툰 >> 로그인? 아님 제외
+    ## 어차피
+    pd.set_option('display.max_columns',None)
+    pd.set_option('display.max_rows',None)
 
-    df = pd.read_csv('src/file/name.csv')
+
+    webtoon = pd.read_csv('src/file/name.csv')
     driver.get('https://webtoon.kakao.com/')
+    # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[2]').click()
+    # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[3]/a').click()
+    # driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div[1]/div[2]/div/div/button').click()
     driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
-
-    for query in df['이름']:
+    df = pd.DataFrame()
+    webtoon_name = []
+    webtoon_platform = []
+    webtoon_artist = []
+    webtoon_link = []
+    for query in webtoon['이름']:
         try:
+            flag = 0
             time.sleep(1)
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
             time.sleep(1)
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
             time.sleep(1.5)
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+            flag = 1
+            time.sleep(1)
             print(f"{query} 크롤링 시작!")
+            webtoon_name.append(query)
+            webtoon_platform.append('kakao')
+            artist = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]').text
+            webtoon_artist.append(artist)
+            webtoon_link.append(driver.current_url)
             time.sleep(1)
             driver.back()
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
             # k = input()
         except Exception as e:
-            print(f"Not in Kakao")
+            ## 에러 종류 2가지 1. 성인 flag = 1 / 2. 없음 flag = 0
+            if flag:
+                print("성인 인증 필요")
+                driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div[2]/button').click()
+                WebDriverWait(driver, 10)
+                webtoon_name.append(query)
+                webtoon_platform.append('kakao')
+                artist2 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a/div/div/p').text
+                webtoon_artist.append(artist2)
+                webtoon_link.append(driver.current_url)
+                print("에러 끝")
+            else:
+                print("Not in Kakao")
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
-            # k = input()
+            df['이름'] = webtoon_name
+            df['플랫폼'] = webtoon_platform
+            df['작가/그림'] = webtoon_artist
+            df['첫화링크'] = webtoon_link
+                # sys.stdout(df['작가/그림'])
+            print(df['첫화링크'])
+            k = input()
             continue
-
+    df['이름'] = webtoon_name
+    df['플랫폼'] = webtoon_platform
+    df['작가/그림'] = webtoon_artist
+    df['첫화링크'] = webtoon_link
+    print(df)
+    return df
 

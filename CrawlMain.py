@@ -15,7 +15,7 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 chrome_options.add_argument('user-agent=' + user_agent)
 # chrome_options.add_argument('--headless=new')
 service = Service(executable_path=ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=chrome_options)
+# driver = webdriver.Chrome(service=service, options=chrome_options)
 
 ## 모든 웹툰 데이터를 크롤링한다.
 ## 만약 중간에 멈출 수도 있으므로 index를 일단 정해두자.
@@ -46,7 +46,7 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 ## 검색 크롤링
 ## 일단 '카카오웹툰' '네이버웹툰' 을 기준으로 할 거임
 ## 만약 카카오, 네이버에도 없으면 따로 리스트 정렬해놓자
-driver.quit()
+# driver.quit()
 
 import undetected_chromedriver as uc
 from undetected_chromedriver import ChromeOptions
@@ -55,7 +55,7 @@ options2.add_argument("--disable-blink-features=AutomationControlled")  # 자동
 options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
 driver2 = uc.Chrome(options=options2, service=service)
 
-Crawling.SearchHomepageCrawling(driver2)
+Crawling.KakaoCrawling(driver2)
 
 
 
@@ -86,4 +86,4 @@ Crawling.SearchHomepageCrawling(driver2)
 # print(df)
 # df.to_csv()
 
-driver.quit()
+# driver.quit()

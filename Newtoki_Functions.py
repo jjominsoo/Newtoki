@@ -356,3 +356,75 @@ def DetailCrawling2(name, url,cookie,driver,webtoon_img,webtoon_num,webtoon_repl
         # webtoon_plot.append("")
 
     return webtoon_img, webtoon_num, webtoon_reply, webtoon_star1, webtoon_star2, webtoon_recommend, webtoon_plot, webtoon_update
+
+
+def KakaoCrawling(driver):
+    ## 성인 웹툰 >> 로그인? 아님 제외
+    ## 어차피
+    pd.set_option('display.max_columns',None)
+
+    webtoon = pd.read_csv('src/file/name.csv')
+    driver.get('https://webtoon.kakao.com/')
+    driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
+    df = pd.DataFrame()
+    webtoon_name = []
+    webtoon_platform = []
+    webtoon_artist = []
+    webtoon_link = []
+    for query in webtoon['이름']:
+        try:
+            flag = 0
+            time.sleep(1)
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
+            time.sleep(1)
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
+            time.sleep(1.5)
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+            flag = 1
+            time.sleep(1)
+            print(f"{query} 크롤링 시작!")
+            webtoon_name.append(query)
+            webtoon_platform.append('kakao')
+            artist = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]').text
+            webtoon_artist.append(artist)
+            webtoon_link.append(driver.current_url)
+            time.sleep(1)
+            driver.back()
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            # k = input()
+        except Exception as e:
+            print("Not in Kakao")
+            ## 에러 종류 2가지 1. 성인 flag = 1 / 2. 없음 flag = 0
+            if flag:
+                print(driver.get_cookies())
+                k = input('계정 로그인중')
+                driver.refresh()
+                cookies = driver.get_cookies()
+                print(cookies)
+                driver.add_cookie(cookies)
+                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+                print(f"{query} 크롤링 재시작!")
+                webtoon_name.append(query)
+                webtoon_platform.append('kakao')
+                time.sleep(3)
+                artist = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]').text
+                webtoon_artist.append(artist)
+                webtoon_link.append(driver.current_url)
+                time.sleep(1)
+                driver.back()
+                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            else:
+                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+                df['이름'] = webtoon_name
+                df['플랫폼'] = webtoon_platform
+                df['작가/그림'] = webtoon_artist
+                df['첫화링크'] = webtoon_link
+                # sys.stdout(df['작가/그림'])
+                print(df['첫화링크'])
+            continue
+    df['이름'] = webtoon_name
+    df['플랫폼'] = webtoon_platform
+    df['작가/그림'] = webtoon_artist
+    df['첫화링크'] = webtoon_link
+    print(df)
+    return df
