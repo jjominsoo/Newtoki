@@ -311,6 +311,8 @@ def SearchGoogleCrawling(driver):
         driver.find_element(By.XPATH, '//*[@id="APjFqb"]').clear()
 
 import traceback
+import random
+import datetime
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 def KakaoCrawling(driver):
@@ -326,7 +328,8 @@ def KakaoCrawling(driver):
     driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
     webtoon_name = []
     webtoon_platform = []
-    webtoon_artist = []
+    webtoon_author = []
+    webtoon_drawing = []
     webtoon_link = []
     webtoon_genre = []
     webtoon_watched = []
@@ -334,10 +337,18 @@ def KakaoCrawling(driver):
     webtoon_free = []
     webtoon_plot = []
     webtoon_keyword = []
+    webtoon_state = []
+    webtoon_week = []
+    webtoon_rotation = []
     for query in webtoon['이름']:
+        cur_time = int(datetime.datetime.now().timestamp())
+        random.seed(cur_time)
+        time.sleep(random.randint(1, 3))
         try:
             flag = 0
             WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            time.sleep(random.randint(1,2))
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
             WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
@@ -345,13 +356,11 @@ def KakaoCrawling(driver):
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
             flag = 1
             print(f"{query} 크롤링 시작!")
-            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]')))
+            ## 여기부터 에러
+            WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]')))
             # 상세페이지들어가서 너무 빨리 나온다. 1~3초 랜덤으로 해서 머물다 나와보자
-            time.sleep(3)
             webtoon_name.append(query)
             webtoon_platform.append('kakao')
-            artist = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]').text
-            webtoon_artist.append(artist)
             webtoon_link.append(driver.current_url)
             genre = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[1]').text
             webtoon_genre.append(genre)
@@ -359,45 +368,50 @@ def KakaoCrawling(driver):
             webtoon_watched.append(watched)
             liked = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[3]').text
             webtoon_liked.append(liked)
-            # '무료'를 text로 갖고 있는 p 클래스 갯수 세보자
-            # free = EC.presence_of_all_elements_located(By.XP)
+            ## 동적으로 스크롤 끝까지 내려야한다.
+            driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
+            time.sleep(2)
+            free = driver.find_elements(By.XPATH, "//*[contains(text(), '무료')]")
+            webtoon_free.append(len(free))
             # 정보 탭으로 이동 (줄거리, 키워드 받기)
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[1]/div[1]/div/div[2]/ul/li[2]/p').click()
+            time.sleep(random.randint(1,3))
+            state = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[1]').text
+            webtoon_state.append(state)
+            week = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[2]').text
+            webtoon_week.append(week)
+            rotation = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[3]').text
+            webtoon_rotation.append(rotation)
+            author = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[1]/dd').text
+            webtoon_author.append(author)
+            drawing = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[2]/dd').text
+            webtoon_drawing.append(drawing)
             plot = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[2]/div/p').text
-            # 전처리 필요할듯
-            print(f'{genre}+{watched}+{liked}+{plot}')
-            webtoon_plot.append(plot)
+            cleaned_plot = re.sub(r'[\n\r!\.]', '', plot)
+            webtoon_plot.append(cleaned_plot)
             # h-30을 클래스로 가진 a 태그 밑의 p태그의 text값 [1:] 을 str로 변환해서 , 구분자로 쓰자
-            # keywords = driver.find_elements(By.CLASS_NAME, 'h-30')
-            # keyword = ','.join(keywords)
-            # webtoon_keyword.append(keyword)
+            keywords = driver.find_elements(By.CLASS_NAME, 'h-30')
+            keyword = ""
+            for i in keywords:
+                keyword += i.text[1:].replace(' ', '')+','
+            webtoon_keyword.append(keyword[:-1])
+            print(f'{genre}  {watched}  {liked}  {len(free)}  {keyword[:-1]}  {state}  {week}  {author}  {drawing}  {rotation}')
             driver.back()
-            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
-            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            # WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+            # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
             # k = input()
         except Exception as e:
             ## 에러 종류 2가지 1. 성인 flag = 1 / 2. 없음 flag = 0
-            # traceback.print_exc()
-
-            # if flag:
-            #     print("성인웹툰 패스")
-            #     driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div[2]/button').click()
-            #     WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a/div/div/p')))
-            #     webtoon_name.append(query)
-            #     webtoon_platform.append('kakao')
-            #     artist2 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a/div/div/p').text
-            #     webtoon_artist.append(artist2)
-            #     webtoon_link.append(driver.current_url)
-
             ## 성인인증 하자
             if flag:
-                print("성인 인증 필요")
-                k = input()
+                k = input("인증 필요.. 인증 후 아무 문자 입력")
+                print('인증 완료')
+                time.sleep(random.randint(1, 3))
+                WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
+                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
                 WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]')))
                 webtoon_name.append(query)
                 webtoon_platform.append('kakao')
-                artist = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[2]').text
-                webtoon_artist.append(artist)
                 webtoon_link.append(driver.current_url)
                 genre = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[1]').text
                 webtoon_genre.append(genre)
@@ -405,43 +419,79 @@ def KakaoCrawling(driver):
                 webtoon_watched.append(watched)
                 liked = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[3]').text
                 webtoon_liked.append(liked)
-                # '무료'를 text로 갖고 있는 p 클래스 갯수 세보자
-                # free = EC.presence_of_all_elements_located(By.XP)
+                # 스크롤 다운
+                # time.sleep(1)
+                driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
+                time.sleep(2)
+                free = driver.find_elements(By.XPATH, "//*[contains(text(),'무료')]")
+                webtoon_free.append(len(free))
                 # 정보 탭으로 이동 (줄거리, 키워드 받기)
-                driver.find_element(By.XPATH,
-                                    '//*[@id="root"]/main/div/div/div[5]/div[2]/div[1]/div[1]/div/div[2]/ul/li[2]/p').click()
-                plot = driver.find_element(By.XPATH,
-                                           '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[2]/div/p').text
-                # 전처리 필요할듯
-                print(f'{genre}+{watched}+{liked}+{plot}')
-                webtoon_plot.append(plot)
+                ## 다 try except로 해서 없으면 없다고 입력해야할듯
+                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[1]/div[1]/div/div[2]/ul/li[2]/p').click()
+                time.sleep(random.randint(1, 3))
+                state = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[1]').text
+                webtoon_state.append(state)
+                week = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[2]').text
+                webtoon_week.append(week)
+                rotation = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[3]').text
+                webtoon_rotation.append(rotation)
+                author = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[1]/dd').text
+                webtoon_author.append(author)
+                drawing = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[2]/dd').text
+                webtoon_drawing.append(drawing)
+                plot = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[2]/div/p').text
+                cleaned_plot = re.sub(r'[\n\r!\.]', '', plot)
+                webtoon_plot.append(cleaned_plot)
                 # h-30을 클래스로 가진 a 태그 밑의 p태그의 text값 [1:] 을 str로 변환해서 , 구분자로 쓰자
-                # keywords = driver.find_elements(By.CLASS_NAME, 'h-30')
-                # keyword = ','.join(keywords)
-                # webtoon_keyword.append(keyword)
+                keywords = driver.find_elements(By.CLASS_NAME, 'h-30')
+                keyword = ""
+                for i in keywords:
+                    keyword += i.text[1:].replace(' ', '') + ','
+                webtoon_keyword.append(keyword[:-1])
+                print(f'{genre}  {watched}  {liked}  {len(free)}  {keyword[:-1]}  {state}  {week}  {author}  {drawing}  {rotation}')
                 driver.back()
-                WebDriverWait(driver, 4).until(
-                    EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
-                driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+                driver.refresh()
+                time.sleep(1)
             else:
                 print(f"{query} is not in Kakao")
-            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
-            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
-            print('cleared')
+
+            # time.sleep(1)
+            # WebDriverWaitdd(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+            # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            # print('cleared')
             df3 = pd.DataFrame()
-            print(len(webtoon_name), len(webtoon_platform), len(webtoon_artist))
+            # print(len(webtoon_name), len(webtoon_platform), len(webtoon_artist))
             df3['이름'] = webtoon_name
             df3['플랫폼'] = webtoon_platform
-            df3['작가/그림'] = webtoon_artist
-            df3['링크'] = webtoon_link
+            df3['작가'] = webtoon_author
+            df3['첫화링크'] = webtoon_link
+            df3['장르'] = webtoon_genre
+            df3['조회수'] = webtoon_watched
+            df3['좋아요'] = webtoon_liked
+            df3['무료'] = webtoon_free
+            df3['줄거리'] = webtoon_plot
+            df3['키워드'] = webtoon_keyword
+            df3['상태'] = webtoon_state
+            df3['요일'] = webtoon_week
+            df3['무료주기'] = webtoon_rotation
             df3.to_csv('src/file/search.csv',index=False)
-            k = input()
+            k = input("Saved.. press any key to continue..")
             continue
     df3['이름'] = webtoon_name
     df3['플랫폼'] = webtoon_platform
-    df3['작가/그림'] = webtoon_artist
+    df3['작가'] = webtoon_author
     df3['첫화링크'] = webtoon_link
+    df3['장르']= webtoon_genre
+    df3['조회수']= webtoon_watched
+    df3['좋아요']= webtoon_liked
+    df3['무료']= webtoon_free
+    df3['줄거리']= webtoon_plot
+    df3['키워드']= webtoon_keyword
+    df3['상태']= webtoon_state
+    df3['요일']= webtoon_week
+    df3['무료주기']= webtoon_rotation
     df3.to_csv('src/file/search.csv', index=False)
     print(df3)
     return df3
 
+# def KakaoPageCrawling(driver):

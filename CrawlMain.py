@@ -55,8 +55,9 @@ options2.add_argument("--disable-blink-features=AutomationControlled")  # 자동
 options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
 driver2 = uc.Chrome(options=options2, service=service)
 
-Crawling.KakaoCrawling(driver2)
-
+kakao_df = Crawling.KakaoCrawling(driver2)
+# naver_df = Crawling.NaverCrawling(driver2)
+# lezhin_df = Crawling.LezhinCrawling(driver2)
 
 
 
