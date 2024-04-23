@@ -15,8 +15,8 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 chrome_options.add_argument('user-agent=' + user_agent)
 # chrome_options.add_argument('--headless=new')
 service = Service(executable_path=ChromeDriverManager().install())
-# driver = webdriver.Chrome(service=service, options=chrome_options)
-
+driver = webdriver.Chrome(service=service, options=chrome_options)
+# driver2 = webdriver.Chrome(service=service, options=chrome_options)
 ## 모든 웹툰 데이터를 크롤링한다.
 ## 만약 중간에 멈출 수도 있으므로 index를 일단 정해두자.
 ## 나중에 Update.py에서 활용할 수 도 있다.
@@ -49,13 +49,13 @@ service = Service(executable_path=ChromeDriverManager().install())
 # driver.quit()
 
 import undetected_chromedriver as uc
-from undetected_chromedriver import ChromeOptions
-options2 = ChromeOptions()
-options2.add_argument("--disable-blink-features=AutomationControlled")  # 자동화 감지 우회
-options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
-driver2 = uc.Chrome(options=options2, service=service)
-
-kakao_df = Crawling.KakaoCrawling(driver2)
+# from undetected_chromedriver import ChromeOptions
+# options2 = ChromeOptions()
+# options2.add_argument("--disable-blink-features=AutomationControlled")  # 자동화 감지 우회
+# options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
+# driver2 = webdriver.Chrome(options=options2, service=service)
+import pandas as pd
+kakao_df = Crawling.KakaoCrawling(driver)
 # naver_df = Crawling.NaverCrawling(driver2)
 # lezhin_df = Crawling.LezhinCrawling(driver2)
 
