@@ -55,6 +55,8 @@ import undetected_chromedriver as uc
 # options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
 # driver2 = webdriver.Chrome(options=options2, service=service)
 import pandas as pd
+
+
 kakao_df = Crawling.KakaoCrawling(driver)
 # naver_df = Crawling.NaverCrawling(driver2)
 # lezhin_df = Crawling.LezhinCrawling(driver2)

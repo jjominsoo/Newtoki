@@ -318,25 +318,16 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
 def KakaoCrawling(driver):
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.max_rows', None)
     webtoon = pd.read_csv('src/file/name.csv')
-    mark_df = pd.DataFrame()
-    mark_df['마지막번호'] = [0]
-    mark_df['체크'] = ['']
-    mark_df.to_csv('src/file/mark.csv', index=False)
     df = pd.read_csv('src/file/search.csv')
     # TEST
     # df = pd.read_csv('src/file/search2.csv')
-    mark = pd.read_csv('src/file/mark.csv')
+    mark = pd.read_csv('src/file/mark2.csv')
     num = int(mark['마지막번호'][0])
     driver.get('https://webtoon.kakao.com/')
     # 인증을 하고 가자
     k = input("인증 필요.. 인증 후 아무 문자 입력")
     print('인증 완료')
-    # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[2]').click()
-    # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[3]/a').click()
-    # driver.find_element(By.XPATH, '/html/body/div[3]/div/div/div/div[1]/div[2]/div/div/button').click()
     driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
     webtoon_name: list[str] = []
     webtoon_platform: list[str] = []
@@ -352,13 +343,14 @@ def KakaoCrawling(driver):
     webtoon_state: list[str] = []
     webtoon_week: list[str] = []
     webtoon_rotation: list[str] = []
+
     for index, query in tqdm(enumerate(webtoon['이름'][num:])):
         cur_time = int(datetime.datetime.now().timestamp())
         random.seed(cur_time)
         time.sleep(random.randint(1,2))
         try:
             mark['마지막번호'] = [num + index]
-            mark.to_csv('src/file/mark.csv', index=False)
+            mark.to_csv('src/file/mark2.csv', index=False)
             check = str(mark['체크'][0])
             time.sleep(random.randint(0, 1))
             WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
@@ -371,7 +363,7 @@ def KakaoCrawling(driver):
                 mark['체크'] = [check + ',' + query]
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
             WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
-            if driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').text.replace(' ', '') != query.replace(' ', ''):
+            if driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').get_attribute('alt').replace(' ', '') != query.replace(' ', ''):
                 print(f"이 웹툰 체크해봐라(2) {query}")
                 mark['체크'] = [check + ',' + query]
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
@@ -380,54 +372,49 @@ def KakaoCrawling(driver):
             ## 여기부터 에러
             webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot = \
                 KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot)
-            # WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
-            # driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
-            df3 = pd.DataFrame()
+            df_kakaoW = pd.DataFrame()
             # print(len(webtoon_name), len(webtoon_platform), len(webtoon_author), len(webtoon_link), len(webtoon_genre), len(webtoon_watched), len(webtoon_liked), len(webtoon_free), len(webtoon_plot), len(webtoon_keyword), len(webtoon_state), len(webtoon_week),len(webtoon_rotation))
-            df3['이름'] = webtoon_name
-            df3['플랫폼'] = webtoon_platform
-            df3['작가'] = webtoon_author
-            df3['첫화링크'] = webtoon_link
-            df3['장르'] = webtoon_genre
-            df3['조회수'] = webtoon_watched
-            df3['좋아요'] = webtoon_liked
-            df3['무료'] = webtoon_free
-            df3['줄거리'] = webtoon_plot
-            df3['키워드'] = webtoon_keyword
-            df3['상태'] = webtoon_state
-            df3['요일'] = webtoon_week
-            df3['무료주기'] = webtoon_rotation
-            new_df = pd.concat([df, df3], ignore_index=True)
+            df_kakaoW['이름'] = webtoon_name
+            df_kakaoW['플랫폼'] = webtoon_platform
+            df_kakaoW['작가'] = webtoon_author
+            df_kakaoW['첫화링크'] = webtoon_link
+            df_kakaoW['장르'] = webtoon_genre
+            df_kakaoW['조회수'] = webtoon_watched
+            df_kakaoW['좋아요'] = webtoon_liked
+            df_kakaoW['무료'] = webtoon_free
+            df_kakaoW['줄거리'] = webtoon_plot
+            df_kakaoW['키워드'] = webtoon_keyword
+            df_kakaoW['상태'] = webtoon_state
+            df_kakaoW['요일'] = webtoon_week
+            df_kakaoW['무료주기'] = webtoon_rotation
+            new_df = pd.concat([df, df_kakaoW], ignore_index=True)
             # new_df.to_csv('src/file/search.csv', index=False)
             # TEST
-            new_df.to_csv('src/file/search2.csv', index=False)
-
+            new_df.to_csv('src/file/search3.csv', index=False)
         except Exception as e:
             print(f"\n{query} is not in Kakao")
             WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
-
         if index % 50 == 0:
             mark['마지막번호'] = [num + index]
             mark.to_csv('src/file/mark.csv', index=False)
         time.sleep(0.5)
-    df3['이름'] = webtoon_name
-    df3['플랫폼'] = webtoon_platform
-    df3['작가'] = webtoon_author
-    df3['그림'] = webtoon_drawing
-    df3['첫화링크'] = webtoon_link
-    df3['장르'] = webtoon_genre
-    df3['조회수'] = webtoon_watched
-    df3['좋아요'] = webtoon_liked
-    df3['무료'] = webtoon_free
-    df3['줄거리'] = webtoon_plot
-    df3['키워드'] = webtoon_keyword
-    df3['상태'] = webtoon_state
-    df3['요일'] = webtoon_week
-    df3['무료주기'] = webtoon_rotation
-    new_df = pd.concat([df, df3], ignore_index=True)
+    df_kakaoW['이름'] = webtoon_name
+    df_kakaoW['플랫폼'] = webtoon_platform
+    df_kakaoW['작가'] = webtoon_author
+    df_kakaoW['그림'] = webtoon_drawing
+    df_kakaoW['첫화링크'] = webtoon_link
+    df_kakaoW['장르'] = webtoon_genre
+    df_kakaoW['조회수'] = webtoon_watched
+    df_kakaoW['좋아요'] = webtoon_liked
+    df_kakaoW['무료'] = webtoon_free
+    df_kakaoW['줄거리'] = webtoon_plot
+    df_kakaoW['키워드'] = webtoon_keyword
+    df_kakaoW['상태'] = webtoon_state
+    df_kakaoW['요일'] = webtoon_week
+    df_kakaoW['무료주기'] = webtoon_rotation
+    new_df = pd.concat([df, df_kakaoW], ignore_index=True)
     new_df.to_csv('src/file/search_end.csv', index=False)
-    # return new_df
 
 def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre,
                       webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week,
@@ -493,14 +480,14 @@ def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_lin
     return webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot
 
 # def NaverCrawling(driver):
-#     # name, platform link genre
+#       # name platform link genre star liked free state week(업데이트날짜기준) author drawing plot
 #
 # def NaverPageCrawling():
 #
 # def KakaopageCrawling(driver):
-#
+#       # name platform link genre watched star free state(업데이트 마지막 날짜) week rotation author+drawing+원작 keyword plot
 # def KakaopagePageCrawling():
 #
 # def LezhinCrawling(driver):
-#
+#       # name platform link genre state(업데이트 마지막날짜) week(업데이트 날짜기준) author drawing keyword plot
 # def LezhinPageCrawling():
