@@ -57,7 +57,7 @@ import undetected_chromedriver as uc
 import pandas as pd
 
 
-kakao_df = Crawling.KakaoCrawling(driver)
+kakao_df = Crawling.KWCrawling(driver)
 # naver_df = Crawling.NaverCrawling(driver2)
 # lezhin_df = Crawling.LezhinCrawling(driver2)
 

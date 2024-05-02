@@ -602,3 +602,167 @@ def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_lin
     print(f'{genre}  {watched}  {liked}  {len(free)}  {keyword[:-1]}  {state}  {week}  {author}  {drawing}  {rotation}')
     driver.back()
     return webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot
+
+# ===================================================================================
+# 동시에 돌리기 위해 쿼리를 따로 집어넣을 것이므로 필요없어진 기능들이 생김
+def KakaoCrawling(driver):
+    webtoon = pd.read_csv('src/file/name.csv')
+    df = pd.read_csv('src/file/search.csv')
+    # TEST
+    # df = pd.read_csv('src/file/search2.csv')
+    mark = pd.read_csv('src/file/mark2.csv')
+    num = int(mark['마지막번호'][0])
+    driver.get('https://webtoon.kakao.com/')
+    # 인증을 하고 가자
+    k = input("인증 필요.. 인증 후 아무 문자 입력")
+    print('인증 완료')
+    driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
+    webtoon_name: list[str] = []
+    webtoon_platform: list[str] = []
+    webtoon_author: list[str] = []
+    webtoon_drawing: list[str] = []
+    webtoon_link: list[str] = []
+    webtoon_genre: list[str] = []
+    webtoon_watched: list[str] = []
+    webtoon_liked: list[str] = []
+    webtoon_free: list[int] = []
+    webtoon_plot: list[str] = []
+    webtoon_keyword: list[str] = []
+    webtoon_state: list[str] = []
+    webtoon_week: list[str] = []
+    webtoon_rotation: list[str] = []
+
+    for index, query in tqdm(enumerate(webtoon['이름'][num:])):
+        cur_time = int(datetime.datetime.now().timestamp())
+        random.seed(cur_time)
+        time.sleep(random.randint(1,2))
+        try:
+            mark['마지막번호'] = [num + index]
+            mark.to_csv('src/file/mark2.csv', index=False)
+            check = str(mark['체크'][0])
+            time.sleep(random.randint(0, 1))
+            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+            time.sleep(random.randint(1, 2))
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
+            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
+            if driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li[1]/a/p').text.replace(' ', '') != query.replace(' ', ''):
+                print(f"이 웹툰 체크해봐라(1) {query}")
+                mark['체크'] = [check + ',' + query]
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
+            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
+            if driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').get_attribute('alt').replace(' ', '') != query.replace(' ', ''):
+                print(f"이 웹툰 체크해봐라(2) {query}")
+                mark['체크'] = [check + ',' + query]
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+            time.sleep(random.randint(1, 2))
+            print(f"\n{query} 크롤링 시작!")
+            ## 여기부터 에러
+            webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot = \
+                KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot)
+            df_kakaoW = pd.DataFrame()
+            # print(len(webtoon_name), len(webtoon_platform), len(webtoon_author), len(webtoon_link), len(webtoon_genre), len(webtoon_watched), len(webtoon_liked), len(webtoon_free), len(webtoon_plot), len(webtoon_keyword), len(webtoon_state), len(webtoon_week),len(webtoon_rotation))
+            df_kakaoW['이름'] = webtoon_name
+            df_kakaoW['플랫폼'] = webtoon_platform
+            df_kakaoW['작가'] = webtoon_author
+            df_kakaoW['첫화링크'] = webtoon_link
+            df_kakaoW['장르'] = webtoon_genre
+            df_kakaoW['조회수'] = webtoon_watched
+            df_kakaoW['좋아요'] = webtoon_liked
+            df_kakaoW['무료'] = webtoon_free
+            df_kakaoW['줄거리'] = webtoon_plot
+            df_kakaoW['키워드'] = webtoon_keyword
+            df_kakaoW['상태'] = webtoon_state
+            df_kakaoW['요일'] = webtoon_week
+            df_kakaoW['무료주기'] = webtoon_rotation
+            new_df = pd.concat([df, df_kakaoW], ignore_index=True)
+            # new_df.to_csv('src/file/search.csv', index=False)
+            # TEST
+            new_df.to_csv('src/file/search3.csv', index=False)
+        except Exception as e:
+            print(f"\n{query} is not in Kakao")
+            WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+            driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+        if index % 50 == 0:
+            mark['마지막번호'] = [num + index]
+            mark.to_csv('src/file/mark.csv', index=False)
+        time.sleep(0.5)
+    df_kakaoW['이름'] = webtoon_name
+    df_kakaoW['플랫폼'] = webtoon_platform
+    df_kakaoW['작가'] = webtoon_author
+    df_kakaoW['그림'] = webtoon_drawing
+    df_kakaoW['첫화링크'] = webtoon_link
+    df_kakaoW['장르'] = webtoon_genre
+    df_kakaoW['조회수'] = webtoon_watched
+    df_kakaoW['좋아요'] = webtoon_liked
+    df_kakaoW['무료'] = webtoon_free
+    df_kakaoW['줄거리'] = webtoon_plot
+    df_kakaoW['키워드'] = webtoon_keyword
+    df_kakaoW['상태'] = webtoon_state
+    df_kakaoW['요일'] = webtoon_week
+    df_kakaoW['무료주기'] = webtoon_rotation
+    new_df = pd.concat([df, df_kakaoW], ignore_index=True)
+    new_df.to_csv('src/file/search_end.csv', index=False)
+
+def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre,
+                      webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week,
+                      webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot):
+    WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]')))
+    webtoon_name.append(query)
+    webtoon_platform.append('kakao')
+    webtoon_link.append(driver.current_url)
+    genre = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[1]').text
+    webtoon_genre.append(genre)
+    watched = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[2]').text
+    webtoon_watched.append(watched)
+    liked = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/div/p[3]').text
+    webtoon_liked.append(liked)
+
+    prev_h = driver.execute_script("return document.body.scrollHeight")
+    while (1):
+        time.sleep(0.5)
+        driver.execute_script("window.scrollTo(0,document.body.scrollHeight);")
+        time.sleep(0.5)
+        curr_h = driver.execute_script("return document.body.scrollHeight")
+        if curr_h == prev_h:
+            break
+        prev_h = curr_h
+    free = driver.find_elements(By.XPATH, "//*[contains(text(), '무료')]")
+    webtoon_free.append(len(free))
+
+    # 정보 탭으로 이동 (줄거리, 키워드 받기)
+    driver.find_element(By.XPATH,
+                        '//*[@id="root"]/main/div/div/div[5]/div[2]/div[1]/div[1]/div/div[2]/ul/li[2]/p').click()
+    time.sleep(random.randint(1, 3))
+    state = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[1]').text
+    webtoon_state.append(state)
+    try:
+        week = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/div/p[2]').text
+    except:
+        week = ''
+    webtoon_week.append(week)
+    try:
+        rotation = driver.find_element(By.XPATH, "//*[contains(text(), '마다 무료')]").text
+    except:
+        rotation = '전편 무료'
+    webtoon_rotation.append(rotation)
+    author = driver.find_element(By.XPATH,
+                                 '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[1]/dd').text
+    webtoon_author.append(author)
+    drawing = driver.find_element(By.XPATH,
+                                  '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[1]/dl/div[2]/dd').text
+    webtoon_drawing.append(drawing)
+    plot = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/div/div[2]/div/p').text
+    cleaned_plot = re.sub(r'[\n\r!\.]', '', plot)
+    webtoon_plot.append(cleaned_plot)
+    # h-30을 클래스로 가진 a 태그 밑의 p태그의 text값 [1:] 을 str로 변환해서 , 구분자로 쓰자
+    keywords = driver.find_elements(By.CLASS_NAME, 'h-30')
+    keyword = ""
+    for i in keywords:
+        keyword += i.text[1:].replace(' ', '') + ','
+    webtoon_keyword.append(keyword[:-1])
+    # print(f'{genre}  {watched}  {liked}  {len(free)}  {keyword[:-1]}  {state}  {week}  {author}  {drawing}  {rotation}')
+    driver.back()
+    WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+    driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+    return webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot

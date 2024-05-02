@@ -211,6 +211,7 @@
 # print("크롤링 완료!")
 #
 
+import Crawling
 
 import pandas as pd
 import concurrent.futures
@@ -234,75 +235,79 @@ driver1 = webdriver.Chrome(service=service, options=chrome_options)
 driver2 = webdriver.Chrome(service=service, options=chrome_options)
 driver3 = webdriver.Chrome(service=service, options=chrome_options)
 driver4 = webdriver.Chrome(service=service, options=chrome_options)
-driver1.get("https://webtoon.kakao.com/search/")
+driver1.get("https://webtoon.kakao.com/")
 driver2.get("https://page.kakao.com/")
 driver3.get("https://series.naver.com/comic/home.series")
 driver4.get("https://www.lezhin.com/ko")
-webtoon_titles = ["웹툰1", "웹툰2", "웹툰3", "웹툰4", "웹툰5", "웹툰6", "웹툰7", "웹툰8", "웹툰9", "웹툰10", "웹툰11", "웹툰12", "웹툰13", "웹툰14", "웹툰15", "웹툰16", "웹툰17", "웹툰18", "웹툰19", "웹툰20"]
 
-
-# 웹툰 제목 리스트 (예시)
-webtoon_titles = [f"웹툰{i}" for i in range(1, 501)]
-
-
-def crawl_kakao_webtoon(driver1, title, kw):
+def crawl_kakao_webtoon(driver1, title, kw, mark_kw):
     # 카카오웹툰 크롤링 로직
     # 예시로 로그만 출력
     # 장르
-    genre_temp = pd.DataFrame()
-    genre_temp['이름'] = [title]
     # driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
-    WebDriverWait(driver1, 5).until( EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input')))
-    driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').send_keys(title)
-    try:
-        WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
-        driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
-        WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
-        driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
-        WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]')))
-        genre_temp['장르'] = [driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]').text]
-        driver1.back()
-        WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input')))
-        driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').clear()
-    except:
-        driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').clear()
-        genre_temp['장르'] = ['nope']
-    new_kw = pd.concat([kw, genre_temp], ignore_index=True)
-    new_kw.to_csv('src/file/prac1.csv', index=False)
+    Crawling.KWCrawling(driver1, title, kw, mark_kw)
+
+    # genre_temp = pd.DataFrame()
+    # genre_temp['이름'] = [title]
+    # # driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div[1]/div[2]/div[2]/div/a[1]').click()
+    # WebDriverWait(driver1, 5).until( EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input')))
+    # driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').send_keys(title)
+    # try:
+    #     WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
+    #     driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
+    #     WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
+    #     driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+    #     WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]')))
+    #     genre_temp['장르'] = [driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[4]/div[2]/p[1]').text]
+    #     driver1.back()
+    #     WebDriverWait(driver1, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input')))
+    #     driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').clear()
+    # except:
+    #     driver1.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[1]/div/input').clear()
+    #     genre_temp['장르'] = ['nope']
+    # new_kw = pd.concat([kw, genre_temp], ignore_index=True)
+    # new_kw.to_csv('src/file/prac1.csv', index=False)
     print(f"{title} - 카카오웹툰 크롤링 완료")
-    return new_kw
 
 
-def crawl_kakao_page(driver2, title, kp):
+def crawl_kakao_page(driver2, title, kp, mark_kp):
     # 카카오페이지 크롤링 로직
     # 예시로 로그만 출력
     # 요일
-    week_temp = pd.DataFrame()
-    week_temp['이름'] = [title]
-    driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/div[1]/input').send_keys(title)
-    driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/a').click()
-    WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span')))
-    driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span').click()
-    try:
-        WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div/div/a')))
-        driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div/div/a').click()
-        WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]')))
-        week_temp['요일'] = [driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]').text]
-    except:
-        driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/div[1]/input').clear()
-        week_temp['요일'] = ['nope']
-    new_kp = pd.concat([kp, week_temp], ignore_index=True)
-    new_kp.to_csv('src/file/prac2.csv', index=False)
+    # mark_kp = pd.read_csv('src/file/mark_kp.csv')
+
+    Crawling.KPCrawling(driver2, title, kp, mark_kp)
+    # check_kp = str(mark_kp['체크'][0])
+    # week_temp = pd.DataFrame()
+    # driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/div[1]/input').send_keys(title)
+    # driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/a').click()
+    # WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span')))
+    # driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span').click()
+    # try:
+    #     WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div[1]/div/a')))
+    #     driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div[1]/div/a').click()
+    #     WebDriverWait(driver2, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]')))
+    #     name = driver2.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]').text.replace(' ', '')
+    #     if title.replace(' ', '') == name:
+    #         week_temp['이름'] = [title]
+    #         week_temp['요일'] = [name]
+    #         new_kp = pd.concat([kp, week_temp], ignore_index=True)
+    #         new_kp.to_csv('src/file/search_kp.csv', index=False)
+    #     else:
+    #         print(f"다른 웹툰! (카페) {name}")
+    #         mark_kp['체크'] = [check_kp + ',' + title]
+    #         mark_kp.to_csv('src/file/mark_kp.csv', index=False)
+    # except:
+    #     driver2.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/div[1]/input').clear()
     print(f"{title} - 카카오페이지 크롤링 완료")
-    return new_kp
 
-
-def crawl_naver_series(driver3, title, nv):
+def crawl_naver_series(driver3, title, nv, mark_nv):
     # 네이버시리즈 크롤링 로직
     # 예시로 로그만 출력
     # 키워드
+    # mark_nv = pd.read_csv('src/file/mark_nv.csv')
+    check_nv = str(mark_nv['체크'][0])
     keyword_temp = pd.DataFrame()
-    keyword_temp['이름'] = [title]
     WebDriverWait(driver3, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ac_input1"]')))
     driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').send_keys(title)
     driver3.find_element(By.XPATH, '//*[@id="ac_form1"]/fieldset/button').send_keys(Keys.ENTER)
@@ -312,22 +317,27 @@ def crawl_naver_series(driver3, title, nv):
         WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a')))
         driver3.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
         WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
-        keyword_temp['키워드'] = [driver3.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text]
+        name = driver3.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
+        if title.replace(' ', '') == name:
+            keyword_temp['이름'] = [title]
+            keyword_temp['키워드'] = [name]
+            new_nv = pd.concat([nv, keyword_temp], ignore_index=True)
+            new_nv.to_csv('src/file/search_nv.csv', index=False)
+        else:
+            print(f"다른 웹툰! (네이버) {name}")
+            mark_nv['체크'] = [check_nv + ',' + title]
+            mark_nv.to_csv('src/file/mark_nv.csv', index=False)
     except:
         driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').clear()
-        keyword_temp['키워드'] = ['nope']
-    new_nv = pd.concat([nv, keyword_temp], ignore_index=True)
-    new_nv.to_csv('src/file/prac3.csv', index=False)
     print(f"{title} - 네이버시리즈 크롤링 완료")
-    return new_nv
 
-
-def crawl_lezhin_comics(driver4, title, lz):
+def crawl_lezhin_comics(driver4, title, lz, mark_lz):
     # 레진코믹스 크롤링 로직
     # 예시로 로그만 출력
     # 줄거리
+    # mark_lz = pd.read_csv('src/file/mark_lz.csv')
+    check_lz = str(mark_lz['체크'][0])
     plot_temp = pd.DataFrame()
-    plot_temp['이름'] = [title]
     driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/button[1]').click()
     WebDriverWait(driver4, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-input"]')))
     driver4.find_element(By.XPATH, '//*[@id="search-input"]').send_keys(title)
@@ -335,30 +345,38 @@ def crawl_lezhin_comics(driver4, title, lz):
         WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a')))
         driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a').click()
         WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="comic-info"]/div/h2')))
-        plot_temp['줄거리'] = [driver4.find_element(By.XPATH, '//*[@id="comic-info"]/div/h2').text]
-        driver4.find_element(By.XPATH, '//*[@id="search-btn"]').click()
+        name = driver4.find_element(By.XPATH, '//*[@id="comic-info"]/div/h2').text.replace(' ', '')
+        if title.replace(' ', '') == name:
+            plot_temp['이름'] = [title]
+            plot_temp['줄거리'] = [name]
+            new_lz = pd.concat([lz, plot_temp], ignore_index=True)
+            new_lz.to_csv('src/file/search_lz.csv', index=False)
+        else:
+            print(f"다른 웹툰! (레진) {name}")
+            mark_lz['체크'] = [check_lz + ',' + title]
+            mark_lz.to_csv('src/file/mark_lz.csv', index=False)
         driver4.back()
     except:
         driver4.refresh()
-        plot_temp['줄거리'] = ['nope']
-    new_lz = pd.concat([lz, plot_temp], ignore_index=True)
-    new_lz.to_csv('src/file/prac4.csv', index=False)
     print(f"{title} - 레진코믹스 크롤링 완료")
-    return new_lz
-
 
 def crawl_all_platforms(title):
     results = {}
-    kw = pd.read_csv('src/file/prac1.csv')
-    kp = pd.read_csv('src/file/prac2.csv')
-    nv = pd.read_csv('src/file/prac3.csv')
-    lz = pd.read_csv('src/file/prac4.csv')
+    kw = pd.read_csv('src/file/search_kw.csv')
+    kp = pd.read_csv('src/file/search_kp.csv')
+    nv = pd.read_csv('src/file/search_nv.csv')
+    lz = pd.read_csv('src/file/search_lz.csv')
+    mark_kw = pd.read_csv('src/file/mark_kw.csv')
+    mark_kp = pd.read_csv('src/file/mark_kp.csv')
+    mark_nv = pd.read_csv('src/file/mark_nv.csv')
+    mark_lz = pd.read_csv('src/file/mark_lz.csv')
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
-            executor.submit(crawl_kakao_webtoon, driver1, title, kw): "카카오웹툰",
-            executor.submit(crawl_kakao_page, driver2, title, kp): "카카오페이지",
-            executor.submit(crawl_naver_series, driver3, title, nv): "네이버시리즈",
-            executor.submit(crawl_lezhin_comics, driver4, title, lz): "레진코믹스"
+            executor.submit(crawl_kakao_webtoon, driver1, title, kw, mark_kw): "카카오웹툰",
+            executor.submit(crawl_kakao_page, driver2, title, kp, mark_kp): "카카오페이지",
+            executor.submit(crawl_naver_series, driver3, title, nv, mark_nv): "네이버시리즈",
+            executor.submit(crawl_lezhin_comics, driver4, title, lz, mark_lz): "레진코믹스"
         }
 
         for future in concurrent.futures.as_completed(futures):
@@ -368,16 +386,18 @@ def crawl_all_platforms(title):
                 results[platform] = data
             except Exception as e:
                 print(f"{platform} 크롤링 중 에러 발생: {e}")
-
     return results
 
+import time
 
 if __name__ == "__main__":
-    df = pd.read_csv('src/file/name.csv')
+    df = pd.read_csv('src/file/name_prac.csv')
     k = input("모든 페이지 로그인 해보자")
-    for title in df['이름'][:5]:
+    for title in df['이름']:
         results = crawl_all_platforms(title)
         # print(f"{title} 크롤링 결과:")
         # for platform, data in results.items():
         #     print(f"{platform}: {data}")
         print("=" * 50)
+    print("All Crawling End")
+    time.sleep(30)
