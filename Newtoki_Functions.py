@@ -766,3 +766,61 @@ def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_lin
     WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
     driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
     return webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot
+
+
+    try:
+        check = str(mark['체크'][0])
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+        driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+        driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
+        if driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li[1]/a/p').text.replace(' ', '') != query.replace(' ', ''):
+            mark['체크'] = [check + ',' + query]
+            print("다른 웹툰(1)! (카웹)")
+            mark.to_csv('src/file/mark_kw.csv', index=False)
+            raise Exception
+        driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
+        WebDriverWait(driver, 4).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
+        if driver.find_element(By.XPATH,'//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').get_attribute(
+                'alt').replace(' ', '') != query.replace(' ', ''):
+            mark['체크'] = [check + ',' + query]
+            print("다른 웹툰(2)! (카웹)")
+            mark.to_csv('src/file/mark_kw.csv', index=False)
+            raise Exception
+        driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
+        time.sleep(random.randint(1, 2))
+        ## 여기부터 에러
+        webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot = \
+            KWPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre,
+                              webtoon_watched, webtoon_liked, webtoon_free, webtoon_state, webtoon_week,
+                              webtoon_rotation, webtoon_author, webtoon_drawing, webtoon_keyword, webtoon_plot)
+        df_kw = pd.DataFrame()
+        # print(len(webtoon_name), len(webtoon_platform), len(webtoon_author), len(webtoon_link), len(webtoon_genre), len(webtoon_watched), len(webtoon_liked), len(webtoon_free), len(webtoon_plot), len(webtoon_keyword), len(webtoon_state), len(webtoon_week),len(webtoon_rotation))
+        df_kw['이름'] = webtoon_name
+        df_kw['플랫폼'] = webtoon_platform
+        df_kw['작가'] = webtoon_author
+        df_kw['그림'] = webtoon_drawing
+        df_kw['장르'] = webtoon_genre
+        df_kw['상태'] = webtoon_state
+        df_kw['요일'] = webtoon_week
+        df_kw['조회수'] = webtoon_watched
+        df_kw['좋아요'] = webtoon_liked
+        df_kw['무료'] = webtoon_free
+        df_kw['무료주기'] = webtoon_rotation
+        df_kw['키워드'] = webtoon_keyword
+        df_kw['줄거리'] = webtoon_plot
+        df_kw['첫화링크'] = webtoon_link
+
+        new_df = pd.concat([df, df_kw], ignore_index=True)
+        # new_df.to_csv('src/file/search.csv', index=False)
+        # TEST
+        new_df.to_csv('src/file/search_kw.csv', index=False)
+    except Exception as e:
+        print(f"{query} is not in kw")
+        WebDriverWait(driver, 4).until(
+            EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
+        driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
+        time.sleep(0.5)

@@ -306,29 +306,33 @@ def crawl_naver_series(driver3, title, nv, mark_nv):
     # 예시로 로그만 출력
     # 키워드
     # mark_nv = pd.read_csv('src/file/mark_nv.csv')
-    check_nv = str(mark_nv['체크'][0])
-    keyword_temp = pd.DataFrame()
-    WebDriverWait(driver3, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ac_input1"]')))
-    driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').send_keys(title)
-    driver3.find_element(By.XPATH, '//*[@id="ac_form1"]/fieldset/button').send_keys(Keys.ENTER)
-    WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]')))
-    driver3.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]').click()
-    try:
-        WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a')))
-        driver3.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
-        WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
-        name = driver3.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
-        if title.replace(' ', '') == name:
-            keyword_temp['이름'] = [title]
-            keyword_temp['키워드'] = [name]
-            new_nv = pd.concat([nv, keyword_temp], ignore_index=True)
-            new_nv.to_csv('src/file/search_nv.csv', index=False)
-        else:
-            print(f"다른 웹툰! (네이버) {name}")
-            mark_nv['체크'] = [check_nv + ',' + title]
-            mark_nv.to_csv('src/file/mark_nv.csv', index=False)
-    except:
-        driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').clear()
+
+    Crawling.NVCrawling(driver3, title, nv, mark_nv)
+    # check_nv = str(mark_nv['체크'][0])
+    # keyword_temp = pd.DataFrame()
+    # WebDriverWait(driver3, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="ac_input1"]')))
+    # driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').send_keys(title)
+    # driver3.find_element(By.XPATH, '//*[@id="ac_form1"]/fieldset/button').send_keys(Keys.ENTER)
+    # # 만화탭 클릭
+    # WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]')))
+    # driver3.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]').click()
+    # try:
+    #     # 첫번째 만화 클릭
+    #     WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a')))
+    #     driver3.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
+    #     WebDriverWait(driver3, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
+    #     name = driver3.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
+    #     if title.replace(' ', '') == name:
+    #         keyword_temp['이름'] = [title]
+    #         keyword_temp['키워드'] = [name]
+    #         new_nv = pd.concat([nv, keyword_temp], ignore_index=True)
+    #         new_nv.to_csv('src/file/search_nv.csv', index=False)
+    #     else:
+    #         print(f"다른 웹툰! (네이버) {name}")
+    #         mark_nv['체크'] = [check_nv + ',' + title]
+    #         mark_nv.to_csv('src/file/mark_nv.csv', index=False)
+    # except:
+    #     driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').clear()
     print(f"{title} - 네이버시리즈 크롤링 완료")
 
 def crawl_lezhin_comics(driver4, title, lz, mark_lz):
