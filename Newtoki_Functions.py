@@ -824,3 +824,32 @@ def KakaoPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_lin
             EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
         driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
         time.sleep(0.5)
+
+def crawl_lezhin_comics(driver4, title, lz, mark_lz):
+    # 레진코믹스 크롤링 로직
+    # 예시로 로그만 출력
+    # 줄거리
+    # mark_lz = pd.read_csv('src/file/mark_lz.csv')
+    check_lz = str(mark_lz['체크'][0])
+    plot_temp = pd.DataFrame()
+    driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/button[1]').click()
+    WebDriverWait(driver4, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-input"]')))
+    driver4.find_element(By.XPATH, '//*[@id="search-input"]').send_keys(title)
+    try:
+        WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a')))
+        driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a').click()
+        WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="comic-info"]/div/h2')))
+        name = driver4.find_element(By.XPATH, '//*[@id="comic-info"]/div/h2').text.replace(' ', '')
+        if title.replace(' ', '') == name:
+            plot_temp['이름'] = [title]
+            plot_temp['줄거리'] = [name]
+            new_lz = pd.concat([lz, plot_temp], ignore_index=True)
+            new_lz.to_csv('src/file/search_lz.csv', index=False)
+        else:
+            print(f"다른 웹툰! (레진) {name}")
+            mark_lz['체크'] = [check_lz + ',' + title]
+            mark_lz.to_csv('src/file/mark_lz.csv', index=False)
+        driver4.back()
+    except:
+        driver4.refresh()
+    print(f"{title} - 레진코믹스 크롤링 완료")

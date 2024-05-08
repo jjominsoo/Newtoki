@@ -439,7 +439,6 @@ def KWPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         webtoon_free.append(len(free))
         # week temp
         week_temp = driver.find_element(By.XPATH, f'//*[@id="root"]/main/div/div/div[5]/div[2]/div[2]/ul/li[{len(num)}]/a/div[2]/div/p').text
-
         # 정보 탭으로 이동 (줄거리, 키워드 받기)
         driver.find_element(By.XPATH,
                             '//*[@id="root"]/main/div/div/div[5]/div[2]/div[1]/div[1]/div/div[2]/ul/li[2]/p').click()
@@ -585,6 +584,10 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
                    webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing):
     # name platform link genre watched free state(업데이트 마지막 날짜) week rotation author+drawing+원작 keyword plot star
     try:
+        try:
+            driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[2]/button').click
+        except:
+            pass
         # name
         webtoon_name.append(query)
         # platform
@@ -609,13 +612,12 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
             rotation = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[2]/div[2]/div/div[3]/div[1]/span[1]').text.split(' ')[0]
             # rotation = rotation_text.text.split('"')[1]
         except:
-            traceback.print_exc()
             rotation = ''
         webtoon_rotation.append(rotation)
 
         # 최신화 정렬
         try:
-            WebDriverWait(driver, 5).until( EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]')))
+            WebDriverWait(driver, 10).until( EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]')))
             driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]').click()
         except:
             driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div').click()
@@ -641,7 +643,11 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         # state
         # week 구한 곳에서 상태를 알려주지만, 시즌완결같은 경운 연재라고 뜸 (쥐뿔도 없는 회귀 : 금 연재, 수라전설 독룡 : 휴재, 나 혼자만 레벨업 : 완결)
         last_date_text = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/ul/li[1]/div/div/a/div/div[2]/div[2]/span[1]').text
-        last_date = datetime.datetime.strptime(last_date_text, '%y.%m.%d')
+        try:
+            last_date = datetime.datetime.strptime(last_date_text, '%y.%m.%d')
+        except:
+            # !! ~일후 무료 경우 ~일을 7로 나눠서 그만큼 내려가서 날짜 받는 방법도 있다
+            last_date = datetime.datetime.now()
         diff = abs(datetime.datetime.now() - last_date).days
         if '연재' in week:
             if diff < 7:
@@ -662,13 +668,14 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         driver.execute_script("window.scrollTo(0, 0)")
         time.sleep(random.randint(0, 1))
         driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[1]/div/div/div[2]/a/div/div/span').click()
-        time.sleep(random.randint(0, 2))
         # plot
         while True:
             try:
-                plot_button = WebDriverWait(driver, 3).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div/div[2]')))
+                plot_button = WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div/div[2]')))
                 plot_button.click()
             except:
+                WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH,
+                                                                                '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div/div/span')))
                 break
         plot = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div/div/div[1]/div/div[2]/div/div/span').text
         cleaned_plot = re.sub(r'[\n\r!\.]', '', plot)
@@ -732,7 +739,7 @@ def NVCrawling(driver, query, df, mark_nv):
             EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]')))
         driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[1]/a[3]').click()
         # 맨 앞에 나온 만화(일치율이 높음) 클릭 >> 만약 만화가 없다면 Exception
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a')))
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li')))
         driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
         name = driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
@@ -760,7 +767,6 @@ def NVCrawling(driver, query, df, mark_nv):
             # df_nv['키워드'] = webtoon_keyword
             df_nv['줄거리'] = webtoon_plot
             df_nv['첫화링크'] = webtoon_link
-
             new_nv = pd.concat([df, df_nv], ignore_index=True)
             new_nv.to_csv('src/file/search_nv.csv', index=False)
         else:
@@ -824,7 +830,7 @@ def NVPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_author
                 # 한달 이상 연재하지 않는다면 시즌 휴재라고 판단
                 webtoon_state.append('시즌 휴재')
         else:
-            webtoon_genre.append(state)
+            webtoon_state.append(state)
         # week
         weeks = ['월', '화', '수', '목', '금', '토', '일']
         second_last_date_text = driver.find_element(By.XPATH, '//*[@id="volumeList"]/tr[2]/td[1]/em').text

@@ -234,11 +234,11 @@ service = Service(executable_path=ChromeDriverManager().install())
 driver1 = webdriver.Chrome(service=service, options=chrome_options)
 driver2 = webdriver.Chrome(service=service, options=chrome_options)
 driver3 = webdriver.Chrome(service=service, options=chrome_options)
-driver4 = webdriver.Chrome(service=service, options=chrome_options)
+# driver4 = webdriver.Chrome(service=service, options=chrome_options)
 driver1.get("https://webtoon.kakao.com/")
 driver2.get("https://page.kakao.com/")
 driver3.get("https://series.naver.com/comic/home.series")
-driver4.get("https://www.lezhin.com/ko")
+# driver4.get("https://www.lezhin.com/ko")
 
 def crawl_kakao_webtoon(driver1, title, kw, mark_kw):
     # 카카오웹툰 크롤링 로직
@@ -335,52 +335,25 @@ def crawl_naver_series(driver3, title, nv, mark_nv):
     #     driver3.find_element(By.XPATH, '//*[@id="ac_input1"]').clear()
     print(f"{title} - 네이버시리즈 크롤링 완료")
 
-def crawl_lezhin_comics(driver4, title, lz, mark_lz):
-    # 레진코믹스 크롤링 로직
-    # 예시로 로그만 출력
-    # 줄거리
-    # mark_lz = pd.read_csv('src/file/mark_lz.csv')
-    check_lz = str(mark_lz['체크'][0])
-    plot_temp = pd.DataFrame()
-    driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/button[1]').click()
-    WebDriverWait(driver4, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="search-input"]')))
-    driver4.find_element(By.XPATH, '//*[@id="search-input"]').send_keys(title)
-    try:
-        WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a')))
-        driver4.find_element(By.XPATH, '/html/body/div[2]/div[2]/div/div/div/section/ul/li/a').click()
-        WebDriverWait(driver4, 4).until(EC.presence_of_element_located((By.XPATH, '//*[@id="comic-info"]/div/h2')))
-        name = driver4.find_element(By.XPATH, '//*[@id="comic-info"]/div/h2').text.replace(' ', '')
-        if title.replace(' ', '') == name:
-            plot_temp['이름'] = [title]
-            plot_temp['줄거리'] = [name]
-            new_lz = pd.concat([lz, plot_temp], ignore_index=True)
-            new_lz.to_csv('src/file/search_lz.csv', index=False)
-        else:
-            print(f"다른 웹툰! (레진) {name}")
-            mark_lz['체크'] = [check_lz + ',' + title]
-            mark_lz.to_csv('src/file/mark_lz.csv', index=False)
-        driver4.back()
-    except:
-        driver4.refresh()
-    print(f"{title} - 레진코믹스 크롤링 완료")
+
 
 def crawl_all_platforms(title):
     results = {}
     kw = pd.read_csv('src/file/search_kw.csv')
     kp = pd.read_csv('src/file/search_kp.csv')
     nv = pd.read_csv('src/file/search_nv.csv')
-    lz = pd.read_csv('src/file/search_lz.csv')
+    # lz = pd.read_csv('src/file/search_lz.csv')
     mark_kw = pd.read_csv('src/file/mark_kw.csv')
     mark_kp = pd.read_csv('src/file/mark_kp.csv')
     mark_nv = pd.read_csv('src/file/mark_nv.csv')
-    mark_lz = pd.read_csv('src/file/mark_lz.csv')
+    # mark_lz = pd.read_csv('src/file/mark_lz.csv')
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = {
             executor.submit(crawl_kakao_webtoon, driver1, title, kw, mark_kw): "카카오웹툰",
             executor.submit(crawl_kakao_page, driver2, title, kp, mark_kp): "카카오페이지",
             executor.submit(crawl_naver_series, driver3, title, nv, mark_nv): "네이버시리즈",
-            executor.submit(crawl_lezhin_comics, driver4, title, lz, mark_lz): "레진코믹스"
+            # executor.submit(crawl_lezhin_comics, driver4, title, lz, mark_lz): "레진코믹스"
         }
 
         for future in concurrent.futures.as_completed(futures):
@@ -393,11 +366,12 @@ def crawl_all_platforms(title):
     return results
 
 import time
-
+from tqdm import tqdm
 if __name__ == "__main__":
-    df = pd.read_csv('src/file/name_prac.csv')
+    count = 0
+    df = pd.read_csv('src/file/name2.csv')
     k = input("모든 페이지 로그인 해보자")
-    for title in df['이름']:
+    for title in tqdm(df['이름'][419:]):
         results = crawl_all_platforms(title)
         # print(f"{title} 크롤링 결과:")
         # for platform, data in results.items():
