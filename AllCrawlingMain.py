@@ -2,32 +2,32 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.common.keys import Keys
 
-import Newtoki_Functions
 import CreateFile
-import Crawling
+import AllCrawling
+
 
 user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36'
 chrome_options = Options()
 chrome_options.add_experimental_option("detach", True)
 chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 chrome_options.add_argument('user-agent=' + user_agent)
-# chrome_options.add_argument('--headless=new')
 service = Service(executable_path=ChromeDriverManager().install())
+
+
+
 driver = webdriver.Chrome(service=service, options=chrome_options)
-# driver2 = webdriver.Chrome(service=service, options=chrome_options)
 ## 모든 웹툰 데이터를 크롤링한다.
 ## 만약 중간에 멈출 수도 있으므로 index를 일단 정해두자.
 ## 나중에 Update.py에서 활용할 수 도 있다.
 ## WebtoonInfo_proto.csv   : 모든 웹툰들을 정리한 csv파일
 ## Mark.csv          : 마지막으로 업데이트한 웹툰 이름을 저장한 csv파일 > 자주 변동되는 url주소를 확인하기 위해 쓰일 것임
-# CreateFile.InitCSV()
+CreateFile.InitCSV()
 
 ## 비정기적으로 바뀌는 도메인 주소
 ## 마지막으로 접속 가능했던 도메인 주소에 1씩 더해가면서 접속 가능한 주소를 찾음
 ## 해당 주소를 업데이트하는 함수
-# url = CreateFile.CheckURL(driver)
+url = CreateFile.CheckURL(driver)
 
 ## 전체 크롤링
 ## 해당 뉴토끼는 요일을 기준 검색을 하면 각 요일마다 모든 웹툰을 크롤링이 가능함
@@ -40,31 +40,12 @@ driver = webdriver.Chrome(service=service, options=chrome_options)
 ## 상세 크롤링
 ## 상세는 업데이트에도 필요하므로 중복을 찾는 것이 중요
 ## 이미지, 총화수, 댓글, 별점(화수) 마지막업데이트날짜 << 없는 경우가 있으니 예외처리를 해야함
-# Crawling.AllCrawling(url, driver)
-
+AllCrawling.AllCrawling(url, driver)
 
 ## 검색 크롤링
 ## 일단 '카카오웹툰' '네이버웹툰' 을 기준으로 할 거임
 ## 만약 카카오, 네이버에도 없으면 따로 리스트 정렬해놓자
-# driver.quit()
-
-import undetected_chromedriver as uc
-# from undetected_chromedriver import ChromeOptions
-# options2 = ChromeOptions()
-# options2.add_argument("--disable-blink-features=AutomationControlled")  # 자동화 감지 우회
-# options2.add_argument(f"--user-agent={user_agent}")  # 원하는 User-Agent 설정
-# driver2 = webdriver.Chrome(options=options2, service=service)
-import pandas as pd
-
-
-kakao_df = Crawling.KWCrawling(driver)
-# naver_df = Crawling.NaverCrawling(driver2)
-# lezhin_df = Crawling.LezhinCrawling(driver2)
-
-
-
-
-
+driver.quit()
 
 
 
