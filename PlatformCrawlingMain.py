@@ -36,8 +36,6 @@ def crawl_naver_series(driver3, title, nv, mark_nv):
     NVCrawling.NVCrawling(driver3, title, nv, mark_nv)
     print(f"{title} - 네이버시리즈 크롤링 완료")
 
-
-
 def crawl_all_platforms(title):
     results = {}
     kw = pd.read_csv('src/file/search_kw.csv')
@@ -68,7 +66,7 @@ if __name__ == "__main__":
     count = 0
     df = pd.read_csv('src/file/name2.csv')
     k = input("모든 페이지 로그인 해보자")
-    for title in tqdm(df['이름'][420:]):
+    for title in tqdm(df['이름'][2284:]):
         results = crawl_all_platforms(title)
         print("=" * 50)
     print("All Crawling End")

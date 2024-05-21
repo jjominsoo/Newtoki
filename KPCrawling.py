@@ -8,8 +8,11 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 def KPCrawling(driver, query, df, mark_kp):
+
+    query2 = re.sub(r'[^\w\s]', '', query)
     webtoon_name: list[str] = []
     webtoon_platform: list[str] = []
     webtoon_author: list[str] = []
@@ -44,7 +47,8 @@ def KPCrawling(driver, query, df, mark_kp):
         WebDriverWait(driver, 10).until(EC.presence_of_element_located(
             (By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]')))
         name = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]').text.replace(' ', '')
-        if query.replace(' ', '') == name:
+        name = re.sub(r'[^\w\s]', '', name)
+        if query2.replace(' ', '') == name:
             webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \
              webtoon_num, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, \
              webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing = \
@@ -74,7 +78,7 @@ def KPCrawling(driver, query, df, mark_kp):
             new_kp.to_csv('src/file/search_kp.csv', index=False)
         else:
             new_mark = pd.DataFrame()
-            check.append(query)
+            check.append(query+'|'+name)
             new_mark['체크'] = check
             print(f"다른 웹툰! (카페) {name}")
             new_mark.to_csv('src/file/mark_kp.csv', index=False)
@@ -92,9 +96,9 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
     # name platform link genre watched free state(업데이트 마지막 날짜) week rotation author+drawing+원작 keyword plot star
     try:
         try:
-            WebDriverWait(driver, 3).until(
-                EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[2]/button')))
-            driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[2]/button').click
+            WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[2]/button')))
+            button = driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[2]/button')
+            button.click()
         except:
             pass
         # name
@@ -117,7 +121,7 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
             webtoon_week.append(week)
         # rotation
         try:
-            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[2]/div[2]/div/div[3]/div[1]/span[1]')))
+            WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[2]/div[2]/div/div[3]/div[1]/span[1]')))
             rotation = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[2]/div[2]/div/div[3]/div[1]/span[1]').text.split(' ')[0]
             # rotation = rotation_text.text.split('"')[1]
         except:
@@ -126,15 +130,17 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
 
         # 최신화 정렬
         try:
-            WebDriverWait(driver, 10).until( EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]')))
-            driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div[2]').click()
+            wait = WebDriverWait(driver, 5)
+            latest_span = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='최신 순' or text()='첫화부터']")))
+            # 요소 클릭
+            latest_span.click()
         except:
-            driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[2]/div').click()
-        WebDriverWait(driver, 5).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]')))
+            print('엉뚱한 웹툰 클릭 or 버튼 위치 이상함')
+            k = input()
+        WebDriverWait(driver, 5).until(
+            EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]').click()
-
         # 모든 화수 확인
-        time.sleep(1)
         while True:
             try:
                 # 버튼을 찾아 클릭

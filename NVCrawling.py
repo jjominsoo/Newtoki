@@ -11,6 +11,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 def NVCrawling(driver, query, df, mark_nv):
+
+    query2 = re.sub(r'[^\w\s]', '', query)
     webtoon_name: list[str] = []
     webtoon_platform: list[str] = []
     webtoon_author: list[str] = []
@@ -44,7 +46,11 @@ def NVCrawling(driver, query, df, mark_nv):
         driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
         name = driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
-        if query.replace(' ', '') == name:
+        name = re.sub(r'[^\w\s]', '', name)
+        name1 = name+'독점'
+        name2 = name+'단행본'
+        query2 = query2.replace(' ', '')
+        if query2 == name or query2 == name1 or query2 == name2:
             webtoon_name, webtoon_platform, webtoon_author, webtoon_drawing, webtoon_genre,\
             webtoon_state, webtoon_week, webtoon_liked, webtoon_star, webtoon_num,\
             webtoon_free, webtoon_plot, webtoon_link = \
@@ -72,7 +78,7 @@ def NVCrawling(driver, query, df, mark_nv):
             new_nv.to_csv('src/file/search_nv.csv', index=False)
         else:
             new_mark = pd.DataFrame()
-            check.append(query)
+            check.append(query+'|'+name)
             new_mark['체크'] = check
             print(f"다른 웹툰! (네이버) {name}")
             new_mark.to_csv('src/file/mark_nv.csv', index=False)

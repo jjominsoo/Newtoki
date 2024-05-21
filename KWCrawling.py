@@ -8,10 +8,12 @@ import re
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
 def KWCrawling(driver, query, df, mark):
     # df = pd.read_csv('src/file/search_kw.csv')
     # TEST
+    query2 = re.sub(r'[^\w\s]', '', query)
     webtoon_name: list[str] = []
     webtoon_platform: list[str] = []
     webtoon_author: list[str] = []
@@ -41,13 +43,17 @@ def KWCrawling(driver, query, df, mark):
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
         name1 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li[1]/a/p').text.replace(' ', '')
-        if query.replace(' ', '') == name1:
+        name1 = re.sub(r'[^\w\s]', '', name1)
+
+        if query2.replace(' ', '') == name1:
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
             name2 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').get_attribute(
                     'alt').replace(' ', '')
-            if query.replace(' ', '') == name2:
+            name2 = re.sub(r'[^\w\s]', '', name2)
+
+            if query2.replace(' ', '') == name2:
                 driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
                 time.sleep(random.randint(1, 2))
                 webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \
@@ -79,13 +85,13 @@ def KWCrawling(driver, query, df, mark):
                 new_df.to_csv('src/file/search_kw.csv', index=False)
             else:
                 new_mark = pd.DataFrame()
-                check.append(query)
+                check.append(query+'|'+name2)
                 new_mark['체크'] = check
                 print("다른 웹툰(2)! (카웹)")
                 new_mark.to_csv('src/file/mark_kw.csv', index=False)
         else:
             new_mark = pd.DataFrame()
-            check.append(query)
+            check.append(query+'|'+name1)
             new_mark['체크'] = check
             print("다른 웹툰(1)! (카웹)")
             new_mark.to_csv('src/file/mark_kw.csv', index=False)
