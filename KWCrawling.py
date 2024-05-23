@@ -33,14 +33,14 @@ def KWCrawling(driver, query, df, mark):
 
     cur_time = int(datetime.datetime.now().timestamp())
     random.seed(cur_time)
-    time.sleep(random.randint(1, 2))
+    time.sleep(random.randint(0, 2))
     try:
         check = mark['체크'].tolist()
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 7).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div/div/input')))
         driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').clear()
         driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div/div/input').send_keys(query)
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 7).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
         name1 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li[1]/a/p').text.replace(' ', '')
         name1 = re.sub(r'[^\w\s]', '', name1)

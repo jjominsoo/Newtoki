@@ -66,7 +66,7 @@ if __name__ == "__main__":
     count = 0
     df = pd.read_csv('src/file/name2.csv')
     k = input("모든 페이지 로그인 해보자")
-    for title in tqdm(df['이름'][2284:]):
+    for title in tqdm(df['이름'][2908:]):
         results = crawl_all_platforms(title)
         print("=" * 50)
     print("All Crawling End")

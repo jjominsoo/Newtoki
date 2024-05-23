@@ -47,10 +47,14 @@ def NVCrawling(driver, query, df, mark_nv):
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
         name = driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
         name = re.sub(r'[^\w\s]', '', name)
-        name1 = name+'독점'
-        name2 = name+'단행본'
         query2 = query2.replace(' ', '')
-        if query2 == name or query2 == name1 or query2 == name2:
+        name1 = query2+'독점'
+        name2 = query2+'단행본'
+        name3 = 'HD'+query2
+        name4 = '19'+query2
+        name5 = query2 + '컬러연재'
+
+        if name == query2 or name == name1 or name == name2 or name == name3 or name == name4 or name == name5:
             webtoon_name, webtoon_platform, webtoon_author, webtoon_drawing, webtoon_genre,\
             webtoon_state, webtoon_week, webtoon_liked, webtoon_star, webtoon_num,\
             webtoon_free, webtoon_plot, webtoon_link = \
@@ -157,8 +161,11 @@ def NVPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_author
         star = driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/div[1]/em').text
         webtoon_star.append(star)
         # num
-        num = driver.find_element(By.XPATH, '//*[@id="content"]/h5/strong').text
-        webtoon_num.append(int(num))
+        try:
+            num = driver.find_element(By.XPATH, '//*[@id="content"]/h5/strong').text
+            webtoon_num.append(int(num))
+        except:
+            webtoon_num.append(int(num[:-1]))
         # free
         free = driver.find_element(By.XPATH, '//*[@id="content"]/div[3]/div/div[1]/strong').text
         webtoon_free.append(free)

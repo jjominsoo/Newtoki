@@ -32,23 +32,25 @@ def KPCrawling(driver, query, df, mark_kp):
 
     cur_time = int(datetime.datetime.now().timestamp()) + 2
     random.seed(cur_time)
-    time.sleep(random.randint(1, 2))
+    time.sleep(random.randint(0, 1))
     try:
         check = mark_kp['체크'].tolist()
         time.sleep(random.randint(1, 2))
         driver.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/div[1]/input').send_keys(query)
         driver.find_element(By.XPATH, '//*[@id="pc-search-modal-root-id"]/a').click()
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located(
             (By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span')))
         driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div/div/div[2]/a/div/div/span').click()
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located(
             (By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div[1]/div/a')))
         driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[3]/div/div[1]/div/a').click()
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located(
+        WebDriverWait(driver, 5).until(EC.presence_of_element_located(
             (By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]')))
         name = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]').text.replace(' ', '')
         name = re.sub(r'[^\w\s]', '', name)
-        if query2.replace(' ', '') == name:
+        query2 = query2.replace(' ', '')
+        name1 = query2 + '완결'
+        if name == query2 or name == name1:
             webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \
              webtoon_num, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, \
              webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing = \
@@ -95,12 +97,6 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
                    webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing):
     # name platform link genre watched free state(업데이트 마지막 날짜) week rotation author+drawing+원작 keyword plot star
     try:
-        try:
-            WebDriverWait(driver, 3).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[2]/button')))
-            button = driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[2]/button')
-            button.click()
-        except:
-            pass
         # name
         webtoon_name.append(query)
         # platform
@@ -135,7 +131,7 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
             # 요소 클릭
             latest_span.click()
         except:
-            print('엉뚱한 웹툰 클릭 or 버튼 위치 이상함')
+            print('엉뚱한 웹툰 클릭 or 버튼 위치 이상함 or 쿠폰 등장')
             k = input()
         WebDriverWait(driver, 5).until(
             EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]')))
@@ -147,6 +143,7 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
                 button = WebDriverWait(driver, 3).until(
                     EC.visibility_of_element_located((By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[2]/div[2]')))
                 button.click()
+                time.sleep(0.5)
             except Exception:
                 break
         # num
@@ -184,6 +181,7 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         webtoon_star.append(star)
         # 정보 탭 이동
         driver.execute_script("window.scrollTo(0, 0)")
+        time.sleep(1)
         driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[1]/div/div/div[2]/a/div/div/span').click()
         time.sleep(random.randint(0, 2))
         # plot
