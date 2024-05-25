@@ -46,8 +46,8 @@ def NVCrawling(driver, query, df, mark_nv):
         driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[3]/ul/li/div/h3/a').click()
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="content"]/div[1]/h2')))
         name = driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/h2').text.replace(' ', '')
-        name = re.sub(r'[^\w\s]', '', name)
-        query2 = query2.replace(' ', '')
+        name = re.sub(r'[^\w\s]', '', name).lower()
+        query2 = query2.replace(' ', '').lower()
         name1 = query2+'독점'
         name2 = query2+'단행본'
         name3 = 'HD'+query2
@@ -167,8 +167,11 @@ def NVPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_author
         except:
             webtoon_num.append(int(num[:-1]))
         # free
-        free = driver.find_element(By.XPATH, '//*[@id="content"]/div[3]/div/div[1]/strong').text
-        webtoon_free.append(free)
+        try:
+            free = driver.find_element(By.XPATH, '//*[@id="content"]/div[3]/div/div[1]/strong').text
+            webtoon_free.append(free)
+        except:
+            webtoon_free.append(0)
         # plot
         try:
             driver.find_element(By.XPATH, '//*[@id="content"]/div[2]/div[1]/span/a').click()
@@ -187,7 +190,7 @@ def NVPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_author
         again_nv = pd.DataFrame()
         again_list.append(query)
         again_nv['체크'] = again_list
-        again_nv.to_csv('src/file/again_nv.csv',index=False)
+        again_nv.to_csv('src/file/again_nv.csv', index=False)
         print('Error at NV')
         traceback.print_exc()
         k = input()

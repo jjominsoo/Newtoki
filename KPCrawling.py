@@ -47,8 +47,8 @@ def KPCrawling(driver, query, df, mark_kp):
         WebDriverWait(driver, 5).until(EC.presence_of_element_located(
             (By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]')))
         name = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[1]/div[1]/div/div[2]/a/div/span[1]').text.replace(' ', '')
-        name = re.sub(r'[^\w\s]', '', name)
-        query2 = query2.replace(' ', '')
+        name = re.sub(r'[^\w\s]', '', name).lower()
+        query2 = query2.replace(' ', '').lower()
         name1 = query2 + '완결'
         if name == query2 or name == name1:
             webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \
@@ -133,6 +133,10 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         except:
             print('엉뚱한 웹툰 클릭 or 버튼 위치 이상함 or 쿠폰 등장')
             k = input()
+            wait = WebDriverWait(driver, 5)
+            latest_span = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='최신 순' or text()='첫화부터']")))
+            # 요소 클릭
+            latest_span.click()
         WebDriverWait(driver, 5).until(
             EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]')))
         driver.find_element(By.XPATH, '/html/body/div[2]/div[3]/div[1]/div[3]/div[2]').click()
@@ -148,6 +152,7 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
                 break
         # num
         num = driver.find_element(By.XPATH, '//*[@id="__next"]/div/div[2]/div[1]/div[2]/div[2]/div[1]/div[1]/div[1]/span').text.split(' ')[1]
+        num = num.replace(',', '')
         webtoon_num.append(int(num))
         # free
         free = driver.find_elements(By.XPATH, "//*[contains(text(), '무료')]")
@@ -225,7 +230,12 @@ def KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, 
         again_kp['체크'] = again_list
         again_kp.to_csv('src/file/again_kp.csv', index=False)
         print('Error at KP')
+        traceback.print_exc()
         k = input()
+        KPPageCrawling(driver, query, webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched,
+                       webtoon_num, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation,
+                       webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing)
     return webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \
         webtoon_num, webtoon_free, webtoon_state, webtoon_week, webtoon_rotation, \
         webtoon_keyword, webtoon_plot, webtoon_star, webtoon_author, webtoon_drawing
+

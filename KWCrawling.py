@@ -43,17 +43,16 @@ def KWCrawling(driver, query, df, mark):
         WebDriverWait(driver, 7).until(
             EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a')))
         name1 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li[1]/a/p').text.replace(' ', '')
-        name1 = re.sub(r'[^\w\s]', '', name1)
-
-        if query2.replace(' ', '') == name1:
+        name1 = re.sub(r'[^\w\s]', '', name1).lower()
+        query2 = query2.replace(' ', '').lower()
+        if query2 == name1:
             driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/div/ul/li/a').click()
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a')))
             name2 = driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li[1]/div/a/div/div/div[2]/picture/img').get_attribute(
                     'alt').replace(' ', '')
-            name2 = re.sub(r'[^\w\s]', '', name2)
-
-            if query2.replace(' ', '') == name2:
+            name2 = re.sub(r'[^\w\s]', '', name2).lower()
+            if query2 == name2:
                 driver.find_element(By.XPATH, '//*[@id="root"]/main/div/div/div[2]/ul/li/div/a').send_keys(Keys.ENTER)
                 time.sleep(random.randint(1, 2))
                 webtoon_name, webtoon_platform, webtoon_link, webtoon_genre, webtoon_watched, \

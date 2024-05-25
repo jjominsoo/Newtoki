@@ -58,6 +58,7 @@ def crawl_all_platforms(title):
                 results[platform] = data
             except Exception as e:
                 print(f"{platform} 크롤링 중 에러 발생: {e}")
+                k = input()
     return results
 
 import time
@@ -66,7 +67,7 @@ if __name__ == "__main__":
     count = 0
     df = pd.read_csv('src/file/name2.csv')
     k = input("모든 페이지 로그인 해보자")
-    for title in tqdm(df['이름'][2908:]):
+    for title in tqdm(df['이름'][5179:]):
         results = crawl_all_platforms(title)
         print("=" * 50)
     print("All Crawling End")
